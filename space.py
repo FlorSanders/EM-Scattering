@@ -1,8 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import special as sp
-import "source.py"
-import 
+import source
 
 ### Space class: Combines all other classes and contains the FDTD algorithm
 class Space:
@@ -16,9 +15,9 @@ class Space:
         self.y_length = y_length
         self.t_length = t_length
 
-    ## Define discretization and initialize zero-valued fields 
+    ## Define discretization and initialize zero-valued fields
     def define_discretization(self, Delta_x, Delta_y, Delta_t):
-        # Saving the given discretization steps 
+        # Saving the given discretization steps
         self.Delta_x = Delta_x
         self.Delta_y = Delta_y
         self.Delta_t = Delta_t
@@ -34,11 +33,11 @@ class Space:
         # H_x and H_y fields on the edges of the discretized blocks
         self.H_x = np.zeros((self.N_x, self.N_y - 1, self.N_t))
         self.H_y = np.zeros((self.N_x - 1, self.N_y, self.N_t))
-    
+
     ## Set the line source of our space
     def set_source(self, source):
         self.source = source
-    
+
     ## Add a list of dielectric options to the space
     def add_objects(self, things):
         self.things.append(things)
@@ -56,7 +55,7 @@ class Space:
             y_length = int(thing.height / self.Delta_y)
             # Changing the value for eps_r at that position
             self.space[i:i + x_length, j:j + y_length] = thing.eps_r
-    
+
     ## Implementation of the FDTD method using the leapfrog scheme
     def FDTD(self, measurement_points):
         for n in range(0, self.N_t-1):
