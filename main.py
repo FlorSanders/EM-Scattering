@@ -5,6 +5,8 @@ from scipy import special as sp
 
 import space
 import dielectric
+def tofloat():
+    pass
 
 def question(questionstring, **kwargs):
     output = {}
@@ -33,6 +35,18 @@ def dialog():
         obj_params = question("What are the parameters of object {}".format(i), **var_name_desc)
         dielec_obj = dielectric.Thing(**obj_params)
         simulation["objects"].append(dielec_obj)
-    print(simulation)
+
+    ## Line source
+    # position
+    var_names = [ "pos_x", "pos_y" ]
+    var_description = [ "pos_x", "pos_y" ]
+    var_name_desc = { name: desc for name, desc in zip(var_names,var_description)}
+    pos = question("Position of line source", **var_name_desc)
+    pos = { k:int(v) for k,v in pos.items() }
+    # profile
+    var_names = [ "J0", "tc", "sigma" ]
+    var_description = var_names.copy()
+    var_name_desc = { name: desc for name, desc in zip(var_names,var_description)}
+    question("Profile line source", **var_name_desc)
 
 dialog()
