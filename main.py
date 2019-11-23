@@ -1,4 +1,4 @@
-# Importing scientific libraries to make our lives easier
+# Importing necessary libraries and files
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import special as sp
@@ -33,7 +33,7 @@ def dialog():
     num_objs = int(question("number of objects", num_objs = "Number of objects")["num_objs"])
     for i in range(num_objs):
         obj_params = question("What are the parameters of object {}".format(i), **var_name_desc)
-        dielec_obj = dielectric.Thing(**obj_params)
+        dielec_obj = dielectric.Dielectric(**obj_params)
         simulation["objects"].append(dielec_obj)
 
     ## Line source

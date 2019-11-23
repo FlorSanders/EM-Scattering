@@ -1,4 +1,4 @@
-# Importing scientific libraries to make our lives easier
+# Importing necessary libraries and files
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import special as sp
@@ -7,6 +7,7 @@ from scipy import special as sp
 from constants import eps_0, mu_0
 import source
 import dielectric
+import measurement
 
 ### Space class: Combines all other classes and contains the FDTD algorithm
 class Space:
@@ -95,3 +96,20 @@ class Space:
             self.E_z[1:-2, 1:-2, n] += self.Delta_t / (eps_0 * self.Delta_x) * np.divide((self.H_y[1:, 1:-2, n - 1] - self.H_y[:-2, 1:-2, n - 1]), self.space)
             self.E_z[1:-2, 1:-2, n] -= self.Delta_t / (eps_0 * self.Delta_y) * np.divide((self.H_x[1:-2, 1:, n - 1] - self.H_x[1:-2, :-2, n - 1]), self.space)
             self.E_z[i_source, j_source, n] -= self.source.get_current((n-1/2)*self.Delta_t) * self.Delta_t / (self.Delta_x * self.Delta_y * eps_0 * self.space[i_source, j_source])
+        
+        # Going over wanted measurement points, creating measurements and adding them to a list
+        measurements = []
+        for point in measurement_points:
+            # Rounding the measurment point to its lower bound discrete value
+            i, j = int(point[0]/self.Delta_x), int(point[1]/self.Delta_y)
+            # Making the discrete time arrays for H (offset by half a step) and E-measurements
+            time_H = (np.range(self.N_t) + 1/2) * self.Delta_t
+            time_E = np.range(self.N_t) * self.Delta_t
+            # Slicing our matrix to obtain correct measurements
+            H_x = self.H_x[i, j, :]
+            H_y = self.H_y[i, j, :]
+            E_z = self.E_z[i, j, :]
+            measure = measurement.Measurement(point[0], point[1], time_H, time_E, H_x, H_y, E_z)
+            measurements.append(measure)
+        # Returning the list of measurements
+        return measurements

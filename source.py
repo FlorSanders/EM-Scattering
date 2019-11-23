@@ -1,10 +1,10 @@
+# Importing scientific libraries to make our lives easier
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import special as sp
-import constants as cst
+from constants import c, simulation_speed_factor
 
 class Source:
-
     def __init__(self, pos_x, pos_y, J0, tc, sigma):
         self.pos_x = pos_x
         self.pos_y = pos_y
@@ -13,8 +13,8 @@ class Source:
         self.sigma = sigma
 
     def get_lambda_min(self,eps_r):
-        v_min = cst.c/np.sqrt(eps_r)
-        omega_max = 3/self.sigma * cst.simulation_speed_factor
+        v_min = c/np.sqrt(eps_r)
+        omega_max = 3/self.sigma * simulation_speed_factor
         return 2*np.pi * v_min / omega_max
 
 
