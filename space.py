@@ -73,7 +73,7 @@ class Space:
         # Initialize the dielectric properties of the space
         self.initialize_space(eps_averaging)
         
-        # Calculating the discretized postions 
+        # Calculating the discretized postions of our line source
         i_source = int(self.source.pos_x / self.Delta_x)
         j_source = int(self.source.pos_y / self.Delta_y)
         
@@ -96,15 +96,15 @@ class Space:
         # Going over wanted measurement points, creating measurements and adding them to a list
         measurements = []
         for point in measurement_points:
-            # Rounding the measurment point to its lower bound discrete value
-            i, j = int(point[0]/self.Delta_x), int(point[1]/self.Delta_y)
+            # Rescaling the locations to indices
+            i, j = point[0]/self.Delta_x, point[1]/self.Delta_y
             # Making the discrete time arrays for H (offset by half a step) and E-measurements
             time_H = (np.range(self.N_t) + 1/2) * self.Delta_t
             time_E = np.range(self.N_t) * self.Delta_t
-            # Slicing our matrix to obtain correct measurements
-            H_x = self.H_x[i, j, :]
-            H_y = self.H_y[i, j, :]
-            E_z = self.E_z[i, j, :]
+            # Slicing our matrix to obtain correct measurements (Lower bound approximation to our indices)
+            H_x = self.H_x[int(i), int(j), :]
+            H_y = self.H_y[int(i + 1/2), int(j + 1/2), :]
+            E_z = self.E_z[int(i + 1/2), int(j + 1/2), :]
             measure = measurement.Measurement(point[0], point[1], time_H, time_E, H_x, H_y, E_z)
             measurements.append(measure)
         # Returning the list of measurements
