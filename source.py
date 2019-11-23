@@ -31,4 +31,4 @@ class gaussian_modulated_rf_pulse(Source):
         self.omega_c = omega_c
 
     def get_current(self,t):
-        return gaussian_pulse(t, self.J0, self.tc, self.sigma)*np.sin(self.omega_c*t)
+        return self.J0*np.exp(-(t-self.tc)**2/(2*self.sigma**2))*np.sin(self.omega_c*t)
