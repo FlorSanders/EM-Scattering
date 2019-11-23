@@ -1,7 +1,6 @@
 # Importing necessary libraries and files
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy import special as sp
 
 ### Simple plotting function taking care of matplotlib syntax
 def plot(x_values, y_values, x_title, y_title, title):

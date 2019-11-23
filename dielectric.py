@@ -1,8 +1,3 @@
-# Importing necessary libraries and files
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy import special as sp
-
 ### Dielectric class
 class Dielectric:
     ## Intialization function with all properties

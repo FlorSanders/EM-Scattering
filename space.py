@@ -1,15 +1,11 @@
 # Importing necessary libraries and files
 import numpy as np
-import matplotlib.pyplot as plt
-from scipy import special as sp
-
-# Importing our other files with class definitions
 from constants import eps_0, mu_0
 import source
 import dielectric
 import measurement
 
-### Space class: Combines all other classes and contains the FDTD algorithm
+### Space class: Combines other classes to implement the FDTD algorithm
 class Space:
     ## Initialize the space by giving its dimensions
     def __init__(self, x_length, y_length, t_length):
