@@ -1,5 +1,6 @@
 # Importing necessary libraries and files
 import numpy as np
+import matplotlib.pyplot as plt
 from constants import eps_0, mu_0
 import source
 import dielectric
@@ -42,7 +43,7 @@ class Space:
 
     ## Add a list of dielectric options to the space
     def add_objects(self, dielectrics):
-        self.dielectrics.append(dielectrics)
+        self.dielectrics.extend(dielectrics)
 
     ## Makes a discretized representation of the (inner) space with its dielectric properties (eps_r) at the measurement points of E_z
     def initialize_space(self, eps_averaging = True):
@@ -50,23 +51,22 @@ class Space:
         self.space = np.ones((self.N_x - 1, self.N_y - 1))
         
         # Changing the relative permittivity according to position and size of our objects (assuming no overlap exists)
-        for thing in self.dielectrics:
+        for dielectric in self.dielectrics:
             # Discretizing given dimensions and positions
-            i = int(thing.pos_x / self.Delta_x)
-            j = int(thing.pos_y / self.Delta_y)
-            x_length = int(thing.width / self.Delta_x)
-            y_length = int(thing.height / self.Delta_y)
+            i = int(dielectric.pos_x / self.Delta_x)
+            j = int(dielectric.pos_y / self.Delta_y)
+            x_length = int(dielectric.width / self.Delta_x)
+            y_length = int(dielectric.height / self.Delta_y)
             
             # Changing the value for eps_r at that position
-            self.space[i:i + x_length, j:j + y_length] = thing.eps_r
-
-            # Problem: The edges of the dielectric and the measurement points of E_z coincide, so eps_r is not well defined in this point
-            if(eps_averaging):
-                # Default solution: We use the average value of eps_r of the surrounding regions at every point for E_z.
-                self.space = (self.space[:self.N_x-2, :self.N_y-2] + self.space[1:, :self.N_y-2] + self.space[:self.N_x-2, 1:] + self.space[1:, 1:]) / 4
-            else:
-                # Alternative solution: We shift the dielectrics slightly (1/2 step left- and downward) so we don't need to average values out.
-                self.space = self.space[:self.N_x-2, :self.N_y-2]
+            self.space[i:i + x_length, j:j + y_length] = dielectric.eps_r
+        # Problem: The edges of the dielectric and the measurement points of E_z coincide, so eps_r is not well defined in this point
+        if(eps_averaging):
+            # Default solution: We use the average value of eps_r of the surrounding regions at every point for E_z.
+            self.space = (self.space[:-1, :-1] + self.space[1:, :-1] + self.space[:-1, 1:] + self.space[1:, 1:]) / 4
+        else:
+            # Alternative solution: We shift the dielectrics slightly (1/2 step left- and downward) so we don't need to average values out.
+            self.space = self.space[:-1, :-1]
 
     ## Implementation of the FDTD method using the leapfrog scheme
     def FDTD(self, measurement_points, eps_averaging = True):
@@ -81,17 +81,17 @@ class Space:
         for n in range(1, self.N_t): 
             # 1: Update H_y
             self.H_y[:, :, n] = self.H_y[:, :, n - 1]
-            self.H_y[:, :, n] += self.Delta_t / (mu_0 * self.Delta_x) * (self.E_z[1:, :, n - 1] - self.E_z[:-2, :, n - 1])
+            self.H_y[:, :, n] += self.Delta_t / (mu_0 * self.Delta_x) * (self.E_z[1:, :, n - 1] - self.E_z[:-1, :, n - 1])
             
             # 2: Update H_x
             self.H_x[:, :, n] = self.H_x[:, :, n - 1]
-            self.H_x[:, :, n] -= self.Delta_t / (mu_0 * self.Delta_y) * (self.E_z[:, 1:, n - 1] - self.E_z[:, :-2, n - 1])
+            self.H_x[:, :, n] -= self.Delta_t / (mu_0 * self.Delta_y) * (self.E_z[:, 1:, n - 1] - self.E_z[:, :-1, n - 1])
             
             # 3: Update E_z (central space, edges = 0 as per boundary conditions)
             self.E_z[:, :, n] = self.E_z[:, :, n - 1] 
-            self.E_z[1:-2, 1:-2, n] += self.Delta_t / (eps_0 * self.Delta_x) * np.divide((self.H_y[1:, 1:-2, n - 1] - self.H_y[:-2, 1:-2, n - 1]), self.space)
-            self.E_z[1:-2, 1:-2, n] -= self.Delta_t / (eps_0 * self.Delta_y) * np.divide((self.H_x[1:-2, 1:, n - 1] - self.H_x[1:-2, :-2, n - 1]), self.space)
-            self.E_z[i_source, j_source, n] -= self.source.get_current((n-1/2)*self.Delta_t) * self.Delta_t / (self.Delta_x * self.Delta_y * eps_0 * self.space[i_source, j_source])
+            self.E_z[1:-1, 1:-1, n] += self.Delta_t / (eps_0 * self.Delta_x) * np.divide((self.H_y[1:, 1:-1, n - 1] - self.H_y[:-1, 1:-1, n - 1]), self.space)
+            self.E_z[1:-1, 1:-1, n] -= self.Delta_t / (eps_0 * self.Delta_y) * np.divide((self.H_x[1:-1, 1:, n - 1] - self.H_x[1:-1, :-1, n - 1]), self.space)
+            self.E_z[i_source, j_source, n] -= self.source.get_current((n-1/2)*self.Delta_t) * self.Delta_t / (eps_0 * self.space[i_source, j_source])
         
         # Going over wanted measurement points, creating measurements and adding them to a list
         measurements = []
@@ -99,8 +99,8 @@ class Space:
             # Rescaling the locations to indices
             i, j = point[0]/self.Delta_x, point[1]/self.Delta_y
             # Making the discrete time arrays for H (offset by half a step) and E-measurements
-            time_H = (np.range(self.N_t) + 1/2) * self.Delta_t
-            time_E = np.range(self.N_t) * self.Delta_t
+            time_H = (np.arange(self.N_t) + 1/2) * self.Delta_t
+            time_E = np.arange(self.N_t) * self.Delta_t
             # Slicing our matrix to obtain correct measurements (Lower bound approximation to our indices)
             H_x = self.H_x[int(i), int(j), :]
             H_y = self.H_y[int(i + 1/2), int(j + 1/2), :]

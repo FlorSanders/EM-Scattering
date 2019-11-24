@@ -24,13 +24,13 @@ class Measurement:
 
     ## Plot function for H_x
     def plot_H_x(self):
-        plot(self.time_H, self.H_x, "time (s)" , "H_x (A/m)", "Measurement of H_x  at (" + self.pos_x + "," + self.pos_y + ")")
+        plot(self.time_H, self.H_x, "time (s)" , "H_x (A/m)", "Measurement of H_x  at (" + str(self.pos_x) + "," + str(self.pos_y) + ")")
     ## Plot function for H_y
     def plot_H_y(self):
-        plot(self.time_H, self.H_y, "time (s)" , "H_y (A/m)", "Measurement of H_y  at (" + self.pos_x + "," + self.pos_y + ")")
+        plot(self.time_H, self.H_y, "time (s)" , "H_y (A/m)", "Measurement of H_y  at (" + str(self.pos_x) + "," + str(self.pos_y) + ")")
     ## Plot function for E_z
     def plot_E_z(self):
-        plot(self.time_E, self.E_z, "time (s)" , "E_z (V/m)", "Measurement of E_z  at (" + self.pos_x + "," + self.pos_y + ")")
+        plot(self.time_E, self.E_z, "time (s)" , "E_z (V/m)", "Measurement of E_z  at (" + str(self.pos_x) + "," + str(self.pos_y) + ")")
     ## Plot function for all measurement data
     def plot_all_separate(self):
         self.plot_H_x()
