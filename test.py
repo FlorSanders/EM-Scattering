@@ -17,9 +17,9 @@ sigma = 10**(-6) # [s]
 tc = 3*sigma # [s]
 
 # Initializing the source (Choices: Sine_source, Gaussian_pulse, Gaussian_modulated_rd_pulse)
-src = source.Sine_source(pos_x, pos_y, J0, omega_c)
-# src = source.Gaussian_pulse(pos_x, pos_y, J0, tc, sigma)
-# src = source.Gaussian_modulated_rf_pulse(pos_x, pos_y, J0, tc, sigma, omega_c)
+src = source.Sine_source(x_source, y_source, J0, omega_c)
+# src = source.Gaussian_pulse(x_source, y_source, J0, tc, sigma)
+# src = source.Gaussian_modulated_rf_pulse(x_source, y_source, J0, tc, sigma, omega_c)
 
 # PEC box parameters
 x_length, y_length = 2*x_source, 2*y_source # [m]
