@@ -1,7 +1,6 @@
 # Importing necessary libraries and files
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
+# import matplotlib.pyplot as plt
 from constants import eps_0, mu_0
 import source
 import dielectric
@@ -72,15 +71,15 @@ class Space:
         print(self.space)
 
     ## Implementation of the FDTD method using the leapfrog scheme
-    def FDTD(self, measurement_points, eps_averaging = True):
+    def FDTD(self, measurement_points, eps_averaging = True, visualize_space = False, make_animation = True):
         # Initialize the dielectric properties of the space
         self.initialize_space(eps_averaging)
         
         # Calculating the discretized postions of our line source
         i_source = int(self.source.pos_x / self.Delta_x)
         j_source = int(self.source.pos_y / self.Delta_y)
-        
-        ims = []
+        # if(make_animation):
+        #     ims = []
         # Use the iterative update functions for our fields
         for n in range(1, self.N_t): 
             # 1: Update H_y
@@ -96,18 +95,18 @@ class Space:
             self.E_z[1:-1, 1:-1, n] += self.Delta_t / (eps_0 * self.Delta_x) * ((self.H_y[1:, 1:-1, n] - self.H_y[:-1, 1:-1, n]))
             self.E_z[1:-1, 1:-1, n] -= self.Delta_t / (eps_0 * self.Delta_y) * ((self.H_x[1:-1, 1:, n] - self.H_x[1:-1, :-1, n]))
             self.E_z[i_source, j_source, n] -= self.source.get_current((n-1/2)*self.Delta_t) * self.Delta_t / (self.Delta_x * self.Delta_y * eps_0 * self.space[i_source, j_source])
-            print(self.source.get_current((n-1/2)*self.Delta_t))
+            
             # Sporadically showing field visualisation plots
-            #if ((n-1) % 50 == 0):
-            #    measurement.field_plot(abs(self.H_x[:,:,n-1]), '', '', 'Field visualisation of H_x at time ' + str((n-1/2)*self.Delta_t))
-            #    measurement.field_plot(abs(self.H_y[:,:,n-1]), '', '', 'Field visualisation of H_y at time ' + str((n-1/2)*self.Delta_t))
-            #    measurement.field_plot(abs(self.E_z[:,:,n-1]), '', '', 'Field visualisation of E_z at time ' + str((n-1)*self.Delta_t))
-            ims.append((plt.imshow(abs(self.E_z[:,:,n-1])),))
+            # if ((n-1) % 50 == 0 and visualize_space):
+            #     measurement.field_plot(abs(self.H_x[:,:,n-1]), '', '', 'Field visualisation of H_x at time ' + str((n-1/2)*self.Delta_t))
+            #     measurement.field_plot(abs(self.H_y[:,:,n-1]), '', '', 'Field visualisation of H_y at time ' + str((n-1/2)*self.Delta_t))
+            #     measurement.field_plot(abs(self.E_z[:,:,n-1]), '', '', 'Field visualisation of E_z at time ' + str((n-1)*self.Delta_t))
+            #if(make_animation):
+                #ims.append([plt.imshow(abs(self.E_z[:,:,n-1]), animated = True)])
         # Making an animation
-        ani = plt.figure()
-        im_ani = animation.ArtistAnimation(ani, ims, interval = 50, repeat_delay = 30000, blit=True)
-        plt.show()
-        # im_ani.save('E_z.mp4', metadata={'artist':'Flor Sanders'})
+        if(make_animation):
+            measurement.make_animation(self.E_z, name="ani_E_z")
+            measurement.make_animation(np.sqrt(self.H_x[1:,:,:]**2 + self.H_y[:,1:,:]**2), name="ani_H_xy")
         
         # Going over wanted measurement points, creating measurements and adding them to a list
         measurements = []
