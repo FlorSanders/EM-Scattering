@@ -47,7 +47,7 @@ class Space:
         self.dielectrics.extend(dielectrics)
 
     ## Makes a discretized representation of the (inner) space with its dielectric properties (eps_r) at the measurement points of E_z
-    def initialize_space(self, eps_averaging = True):
+    def initialize_space(self, eps_averaging = True, plot_space = True):
         # Initialize space with relative permittivity (eps_r) 1 everywhere (vacuum)
         self.space = np.ones((self.N_x - 1, self.N_y - 1))
         
@@ -68,10 +68,13 @@ class Space:
         else:
             # Alternative solution: We shift the dielectrics slightly (1/2 step left- and downward) so we don't need to average values out.
             self.space = self.space[:-1, :-1]
-        print(self.space)
+        
+        # Visualizing our space using a plot
+        if(plot_space):
+            measurement.field_plot(self.space, "i", "j", "Visualisatie van de ruimte")
 
     ## Implementation of the FDTD method using the leapfrog scheme
-    def FDTD(self, measurement_points, eps_averaging = True, visualize_space = False, make_animation = True):
+    def FDTD(self, measurement_points, eps_averaging = True, visualize_space = False, make_animation = False):
         # Initialize the dielectric properties of the space
         self.initialize_space(eps_averaging)
         
@@ -92,23 +95,16 @@ class Space:
             
             # 3: Update E_z (inner space, edges = 0 as per boundary conditions)
             self.E_z[:, :, n] = self.E_z[:, :, n - 1] 
-            self.E_z[1:-1, 1:-1, n] += self.Delta_t / (eps_0 * self.Delta_x) * ((self.H_y[1:, 1:-1, n] - self.H_y[:-1, 1:-1, n]))
-            self.E_z[1:-1, 1:-1, n] -= self.Delta_t / (eps_0 * self.Delta_y) * ((self.H_x[1:-1, 1:, n] - self.H_x[1:-1, :-1, n]))
+            self.E_z[1:-1, 1:-1, n] += self.Delta_t / (eps_0 * self.Delta_x) * (self.H_y[1:, 1:-1, n] - self.H_y[:-1, 1:-1, n]) / self.space
+            self.E_z[1:-1, 1:-1, n] -= self.Delta_t / (eps_0 * self.Delta_y) * (self.H_x[1:-1, 1:, n] - self.H_x[1:-1, :-1, n]) / self.space
             self.E_z[i_source, j_source, n] -= self.source.get_current((n-1/2)*self.Delta_t) * self.Delta_t / (self.Delta_x * self.Delta_y * eps_0 * self.space[i_source, j_source])
-            
-            # Sporadically showing field visualisation plots
-            # if ((n-1) % 50 == 0 and visualize_space):
-            #     measurement.field_plot(abs(self.H_x[:,:,n-1]), '', '', 'Field visualisation of H_x at time ' + str((n-1/2)*self.Delta_t))
-            #     measurement.field_plot(abs(self.H_y[:,:,n-1]), '', '', 'Field visualisation of H_y at time ' + str((n-1/2)*self.Delta_t))
-            #     measurement.field_plot(abs(self.E_z[:,:,n-1]), '', '', 'Field visualisation of E_z at time ' + str((n-1)*self.Delta_t))
-            #if(make_animation):
-                #ims.append([plt.imshow(abs(self.E_z[:,:,n-1]), animated = True)])
+        
         # Making an animation
         if(make_animation):
             measurement.make_animation(self.E_z, name="ani_E_z")
             measurement.make_animation(np.sqrt(self.H_x[1:,:,:]**2 + self.H_y[:,1:,:]**2), name="ani_H_xy")
         
-        # Going over wanted measurement points, creating measurements and adding them to a list
+        # Getting measurements
         measurements = []
         for point in measurement_points:
             # Rescaling the locations to indices

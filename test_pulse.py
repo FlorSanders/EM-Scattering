@@ -23,7 +23,7 @@ src = source.Gaussian_pulse(x_source, y_source, J0, tc, sigma)
 
 # PEC box parameters
 x_length, y_length = 2*x_source, 2*y_source # [m]
-t_length = 10*tc # [s]
+t_length = 4*tc # [s]
 
 # Initializing a space with a PEC bounding box
 box = space.Space(x_length, y_length, t_length)
@@ -40,22 +40,11 @@ box.define_discretization(Delta_x, Delta_y, Delta_t)
 # Adding the source to our space
 box.set_source(src)
 
-# Parameters for the dielectric
-x_diel = 1.5*x_source # [m]
-y_diel = 0.5*y_source # [m]
-w_diel = 0.25*x_source # [m]
-h_diel = y_source # [m]
-eps_r = 10 # [-]
-
-# Initializing the dielectric and adding it to the box
-diel = dielectric.Dielectric(x_diel, y_diel, w_diel, h_diel, eps_r)
-box.add_objects([diel])
-
 # Measurement parameters
-measurement_points = [(x_source, y_source)] # [(x_source, y_source), (1.1*x_source, 1.1*y_source), (1.5*x_source, 1.5*y_source)] # List of measurement point coordinates [(m, m)]
+measurement_points = [(x_source, y_source), (1.25*x_source, 1.25*y_source), (1.5*x_source, 1.5*y_source)] # [(x_source, y_source), (1.1*x_source, 1.1*y_source), (1.5*x_source, 1.5*y_source)] # List of measurement point coordinates [(m, m)]
 
 # Getting measurments
-measurements = box.FDTD(measurement_points, make_animation=True)
+measurements = box.FDTD(measurement_points)
 
 measurement.plot(measurements[0].time_E, src.get_current(measurements[0].time_E), "time [s]", "current [A/m**2]", "Current over time at source")
 
