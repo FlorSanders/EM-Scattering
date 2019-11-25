@@ -3,8 +3,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 ### Simple plotting function taking care of matplotlib syntax
-def plot(x_values, y_values, x_title, y_title, title):
+def plot(x_values, y_values, x_title, y_title, title, yscale = 'linear'):
     plt.plot(x_values, y_values, color='black', marker='o')
+    plt.title(title)
+    plt.xlabel(x_title)
+    plt.ylabel(y_title)
+    plt.yscale(yscale)
+    plt.show()
+
+def field_plot(field, x_title, y_title, title):
+    plt.imshow(field)
     plt.title(title)
     plt.xlabel(x_title)
     plt.ylabel(y_title)
