@@ -91,7 +91,7 @@ class Space:
             self.E_z[:, :, n] = self.E_z[:, :, n - 1] 
             self.E_z[1:-1, 1:-1, n] += self.Delta_t / (eps_0 * self.Delta_x) * np.divide((self.H_y[1:, 1:-1, n - 1] - self.H_y[:-1, 1:-1, n - 1]), self.space)
             self.E_z[1:-1, 1:-1, n] -= self.Delta_t / (eps_0 * self.Delta_y) * np.divide((self.H_x[1:-1, 1:, n - 1] - self.H_x[1:-1, :-1, n - 1]), self.space)
-            self.E_z[i_source, j_source, n] -= self.source.get_current((n-1/2)*self.Delta_t) * self.Delta_t / (eps_0 * self.space[i_source, j_source])
+            self.E_z[i_source, j_source, n] -= self.source.get_current((n-1/2)*self.Delta_t) * self.Delta_t / (self.Delta_x * self.Delta_y * eps_0 * self.space[i_source, j_source])
         
         # Going over wanted measurement points, creating measurements and adding them to a list
         measurements = []

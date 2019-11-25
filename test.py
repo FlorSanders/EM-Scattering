@@ -13,11 +13,13 @@ x_source = 10 # [m]
 y_source = 10 # [m]
 J0 = 1 # [A/m**2]
 omega_c = 10**9 # [Hz] = 1 GHz
-sigma = 1/(3*omega_c) # [s]
+sigma = 10**(-6) # [s]
 tc = 3*sigma # [s]
 
 # Initializing the source (Choices: Sine_source, Gaussian_pulse, Gaussian_modulated_rd_pulse)
-src = source.Gaussian_pulse(x_source, y_source, J0, tc, sigma)
+src = source.Sine_source(pos_x, pos_y, J0, omega_c)
+# src = source.Gaussian_pulse(pos_x, pos_y, J0, tc, sigma)
+# src = source.Gaussian_modulated_rf_pulse(pos_x, pos_y, J0, tc, sigma, omega_c)
 
 # PEC box parameters
 x_length, y_length = 2*x_source, 2*y_source # [m]
@@ -39,7 +41,7 @@ box.define_discretization(Delta_x, Delta_y, Delta_t)
 box.set_source(src)
 
 # Measurement parameters
-measurement_points = [(x_source, y_source)] # List of measurement point coordinates [(m, m)]
+measurement_points = [((1.01)*x_source, (1.01)*y_source)] # List of measurement point coordinates [(m, m)]
 
 # Getting measurments
 measurements = box.FDTD(measurement_points)
