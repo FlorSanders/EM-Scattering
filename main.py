@@ -8,7 +8,7 @@ import dielectric
 var_names = {}          # var names in simulation program
 var_description = {}    # var description to print
 questions = {}          # General question asked
-simulation = {}         # simulation dict: contains all usefull objects
+functions = {}          # dict of used functions
 
 def tofloat():
     pass
@@ -54,14 +54,21 @@ def create_dielek(num_dielek):
     var_names["dielectric"] = [ "pos_x", "pos_y", "width", "height", "eps_r" ]
     var_description["dielectric"] = [ "...", "...", "...", "...", "..." ]
     questions["dielectric"] = []
-    simulation["dielectric"] = []
+    functions["dielectric"] = []
     for i in range(num_dielek):
         questions["dielectric"].append("What are the parameters of object {}".format(i))
-        simulation["dielectric"].append(dielectric.Dielectric)
+        functions["dielectric"].append(dielectric.Dielectric)
     return None
 
 
 def dialog():
+    """Dialog
+    Returns
+    -------
+    simulation : dict
+        Objects for each simulation domain
+    """
+    simulation = {}         # simulation dict: contains all usefull objects
     # iteration order of questions/subjects
     keys = ["space", "num_dielek", "dielectric"]
 
@@ -69,14 +76,14 @@ def dialog():
     # space
     var_names["space"] = [ "x_length", "y_length", "t_length"]
     var_description["space"] = [ "the length of the simulation domain (units)", "the heigth of the simulation domain (units)", "the duration of the simulation (time units)"]
-    questions["space"] = ["What are the dimensions of the simulation domain?"]
-    simulation["space"] = [space.Space]
+    questions["space"] = "What are the dimensions of the simulation domain?"
+    functions["space"] = [space.Space]
 
     # number of objects
     var_names["num_dielek"] = [ "num_dielek" ]
     var_description["num_dielek"] = [ "Number of dielectric objects" ]
-    questions["num_dielek"] = ["Enter the number of dielectric"]
-    simulation["num_dielek"] = [create_dielek]
+    questions["num_dielek"] = "Enter the number of dielectric"
+    functions["num_dielek"] = [create_dielek]
 
     # dielectric objects
     # See create_dielek
@@ -92,16 +99,30 @@ def dialog():
     #var_description = var_names.copy()
     #questions = ["Profile line source"]
 
+    # iterate over all simulation domains
     for k in keys:
-        if not isinstance(questions[k], list):
-            questions[k] = [ questions[k] ]
-        for i, qst in enumerate(questions[k]):
+        # if list --> simulation domain is list too
+        if isinstance(questions[k], list):
+            simulation[k] = []
+            subqst = questions[k]
+        else:
+            subqst = [ questions[k] ]
+
+        # iterate over all subquestions
+        for i, qst in enumerate(subqst):
             var_name_desc = { name: desc for name, desc in zip(var_names[k],var_description[k])}
             answer = question(qst, **var_name_desc)
+            # convert answer to integers
             answer = { k:int(v) for k,v in answer.items() }
-            simulation[k][i] = simulation[k][i](**answer)
+
+            #if list --> append to sim domain
+            if isinstance(questions[k], list):
+                simulation[k].append(functions[k][i](**answer))
+            else:
+                simulation[k] = functions[k][i](**answer)
+    # Remove all None values
     simulation = { k:v for k, v in simulation.items() if v is not None }
-    print(simulation)
+    return simulation
 
 
 dialog()
