@@ -27,9 +27,9 @@ class Space:
         self.Delta_t = Delta_t
 
         # Calculating the amount of space/time indices
-        self.N_x = self.x_length // Delta_x + 1
-        self.N_y = self.y_length // Delta_y + 1
-        self.N_t = self.t_length // Delta_t # t_length not inclusive
+        self.N_x = int(self.x_length / Delta_x + 1)
+        self.N_y = int(self.y_length / Delta_y + 1)
+        self.N_t = int(self.t_length / Delta_t) # t_length not inclusive
 
         # Initializing zero-valued fields of the correct size (as 3D numpy array)
         # E_z field at the corners of our discretized blocks
@@ -54,10 +54,10 @@ class Space:
         # Changing the relative permittivity according to position and size of our objects (assuming no overlap exists)
         for dielectric in self.dielectrics:
             # Discretizing given dimensions and positions
-            i = dielectric.pos_x // self.Delta_x
-            j = dielectric.pos_y // self.Delta_y
-            x_length = dielectric.width // self.Delta_x
-            y_length = dielectric.height // self.Delta_y
+            i = int(dielectric.pos_x / self.Delta_x)
+            j = int(dielectric.pos_y / self.Delta_y)
+            x_length = int(dielectric.width / self.Delta_x)
+            y_length = int(dielectric.height / self.Delta_y)
 
             # Changing the value for eps_r at that position
             self.space[i:i + x_length, j:j + y_length] = dielectric.eps_r
@@ -74,13 +74,13 @@ class Space:
             measurement.field_plot(self.space, "i", "j", "Visualisatie van de ruimte")
 
     ## Implementation of the FDTD method using the leapfrog scheme
-    def FDTD(self, measurement_points, eps_averaging = True, visualize_space = False, make_animation = False):
+    def FDTD(self, measurement_points, eps_averaging = True, plot_space = False, make_animation = False):
         # Initialize the dielectric properties of the space
-        self.initialize_space(eps_averaging)
+        self.initialize_space(eps_averaging, plot_space)
 
         # Calculating the discretized postions of our line source
-        i_source = self.source.pos_x // self.Delta_x
-        j_source = self.source.pos_y // self.Delta_y
+        i_source = int(self.source.pos_x / self.Delta_x)
+        j_source = int(self.source.pos_y / self.Delta_y)
         # if(make_animation):
         #     ims = []
         # Use the iterative update functions for our fields
@@ -114,9 +114,9 @@ class Space:
             time_E = np.arange(self.N_t) * self.Delta_t
             # Slicing our matrix to obtain correct measurements (Lower bound approximation to our indices)
             # Assuming no i, j < 1/2
-            H_x = self.H_x[int(i - 1/2), int(j - 1/2), :]
-            H_y = self.H_y[int(i - 1/2), int(j - 1/2), :]
-            E_z = self.E_z[int(i), int(j), :]
+            H_x = self.H_x[int(i - 1/2 + (not(eps_averaging))/2), int(j - 1/2 + (not(eps_averaging))/2), :]
+            H_y = self.H_y[int(i - 1/2 + (not(eps_averaging))/2), int(j - 1/2 + (not(eps_averaging))/2), :]
+            E_z = self.E_z[int(i + (not(eps_averaging))/2), int(j + (not(eps_averaging))/2), :]
             measure = measurement.Measurement(point[0], point[1], time_H, time_E, H_x, H_y, E_z)
             measurements.append(measure)
         # Returning the list of measurements
