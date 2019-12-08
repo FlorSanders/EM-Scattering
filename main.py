@@ -3,6 +3,7 @@ import numpy as np
 from scipy import special as sp
 import space
 import dielectric
+import source as src
 
 # global dictionaries
 var_names = {}          # var names in simulation program
@@ -60,6 +61,36 @@ def create_dielek(num_dielek):
         functions["dielectric"].append(dielectric.Dielectric)
     return None
 
+# object to remember line source position
+class placing_line_source:
+    def __init__(self, **kwargs):
+        self.position = kwargs
+    def choose_profile(self, profile):
+        self.profile = profile
+        if profile == 1:
+            # profile
+            var_names["source_parameters"] = [ "J0", "tc", "sigma" ]
+            var_description["source_parameters"] = var_names["source_parameters"].copy()
+            questions["source_parameters"] = ["Profile line source"]
+            functions["source_parameters"] = [self.pulse]
+        elif profile == 2:
+            var_names["source_parameters"] = [ "J0", "tc", "sigma", "omega_c" ]
+            var_description["source_parameters"] = var_names["source_parameters"].copy()
+            questions["source_parameters"] = ["Profile line source"]
+            functions["source_parameters"] = [self.pulse]
+        else:
+            raise UnsupportedError("profile doesn't match")
+        return None
+    def pulse(self, **kwargs):
+        if self.profile == 1:
+            return src.Gaussian_pulse(**self.position, **kwargs)
+        elif self.profile == 2:
+            return src.Gaussian_modulated_rf_pulse(**self.position, **kwargs)
+
+def place_source(**kwargs):
+    functions["source_profile"] = [placing_line_source(**kwargs).choose_profile]
+    return None
+
 
 def dialog():
     """Dialog
@@ -70,7 +101,7 @@ def dialog():
     """
     simulation = {}         # simulation dict: contains all usefull objects
     # iteration order of questions/subjects
-    keys = ["space", "num_dielek", "dielectric"]
+    keys = ["space", "num_dielek", "dielectric", "line_source", "source_profile", "source_parameters"]
 
     ## All variable names, descriptions
     # space
@@ -92,12 +123,19 @@ def dialog():
     # position
     var_names["line_source"] = [ "pos_x", "pos_y" ]
     var_description["line_source"] = [ "pos_x", "pos_y" ]
-    questions["line_source"] = ["Position of line source"]
+    questions["line_source"] = "Position of line source"
+    functions["line_source"] = [place_source]
 
+    # choose profile
+    var_names["source_profile"] = [ "profile" ]
+    var_description["source_profile"] = var_names["source_profile"].copy()
+    questions["source_profile"] = "Profile line source: 1 = Gaus, 2=sin"
+    #functions["source_profile"] = [choose_profile]
     # profile
-    #var_names = [ "J0", "tc", "sigma" ]
-    #var_description = var_names.copy()
-    #questions = ["Profile line source"]
+    #var_names["source_parameters"] = [ "J0", "tc", "sigma" ]
+    #var_description["source_profile"] = var_names.copy()
+    #questions["source_profile"] = ["Profile line source"]
+    #functions["source_parameters"] = []
 
     # iterate over all simulation domains
     for k in keys:
@@ -125,4 +163,4 @@ def dialog():
     return simulation
 
 
-dialog()
+print(dialog())
