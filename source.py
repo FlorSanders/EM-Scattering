@@ -34,7 +34,8 @@ class Gaussian_modulated_rf_pulse(Source):
 
     def get_lambda_min(self,eps_r):
         v_min = c / np.sqrt(eps_r)
-        omega_max = 3 / self.sigma * simulation_speed_factor
+        # Gaussian + freq shift sinus
+        omega_max = 3 / self.sigma * simulation_speed_factor + self.omega_c
         return 2 * np.pi * v_min / omega_max
 
 class Sine_source(Source):

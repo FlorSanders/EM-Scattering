@@ -24,14 +24,14 @@ def make_animation(field, save = True, name = "animation"):
     images = []
     for n in range(field.shape[2]):
         images.append([plt.imshow(abs(field[:,:,n]), origin='lower', animated = True)])
-    
+
     im_ani = animation.ArtistAnimation(fig, images, interval=25, blit=True,repeat_delay=100)
     im_ani.save(name + '.mp4')
     plt.show()
 
 ### Measurement class: Combine all measurement data for a certain point into a single callable instance
 class Measurement:
-    ## Initialization with all measurement data 
+    ## Initialization with all measurement data
     def __init__(self, pos_x, pos_y, time_H, time_E, H_x, H_y, E_z):
         self.pos_x = pos_x
         self.pos_y = pos_y
