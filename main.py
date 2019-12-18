@@ -162,5 +162,18 @@ def dialog():
     simulation = { k:v for k, v in simulation.items() if v is not None }
     return simulation
 
+def simulate(simulation):
+    """
+    Parameters
+    ----------
+    simulation : dict
+        Dictionary with all parameters for simulation
+
+    Returns
+    -------
+    """
+    box = simulation["space"]
+    box.add_objects(simulation["dielectric"])
+    box.set_source(simulation["source_parameters"])
 
 print(dialog())
