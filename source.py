@@ -58,4 +58,5 @@ class Sine_source(Source):
 
     def get_lambda_min(self, eps_r):
         v_min = c / np.sqrt(eps_r)
-        return 2 * np.pi * v_min / self.omega_c
+        f_max = self.omega_c / (2 * np.pi)
+        return v_min / f_max

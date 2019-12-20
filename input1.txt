@@ -1,0 +1,66 @@
+Input & output of my script on this moment
+See also screenshot of memory usage... (not normal, because the script I duplicated needs 20x less)
+
+----------------------------------------------------------------------------------
+
+Applied ElectroMagnetism project
+made by:
+    Paul De Smul
+    Thijs Paelman
+    Flor Sanders
+
+This is the input dialog to test our discrete solver
+
+Note: We do not test if the inputted parameters make sense
+Note2: All input values are (floating) numbers
+    if you want to insert a number like: 1.23*10^(-67)
+    use this notation: 1.23e-67
+    In all other case, a ValueError will be thrown and you'll have to start again
+          
+
+What are the dimensions of the simulation domain?
+The length of the simulation domain (x-axis) [m]: 0.5
+The heigth of the simulation domain (y-axis) [m]: 0.5
+The duration of the simulation [s]: 30e-10
+
+How many (rectangular) dielectric objects do you want to add?
+Number of dielectric objects: 1
+Note: the position of the dielectric object is referred from it's left down corner to the left down corner of the grid
+
+What are the parameters of the 1-th dielectric object?
+x-position [m]: 0.375
+y-postition [m]: 0.125
+width [m]: 0.0625        
+height [m]: 0.25
+Relative permittivity (εᵣ) [-]: 10
+
+Where does the line source has to be placed?
+x-position [m]: 0.25
+y-position [m]: 0.25
+
+Which current profile do you want to use for the line source?
+1) Gaussian pulse
+2) Gaussian-modulated sinusoidal radio-frequency pulse
+Enter the number of your choice: 1
+
+What are the parameters for the Gaussian pulse source?
+Source amplitude (J₀) [A/m²]: 1
+Pulse width (σ) [s]: 1e-10
+Central time (tc) [s]: 3e-10
+It is recommended to take the discretization steps between 0.0006618476967602156 & 0.0009927715451403234 [m]
+
+How do you want to discretize space?
+Step in x-direction (Δx) [m]: 0.000794217
+Step in y-direction (Δy) [m]: 0.000794217
+The time discretization should be less than 1.8732833713703236e-12 [s] for a stable simulation.
+
+give dis time
+d_t: 1.8732833713703236e-12
+
+Enter the number of meas
+Number of meas objects: 1
+
+What are the parameters of the 1-th measurement point?
+x-position [m]: 0.25
+y-position [m]: 0.25
+{'space': <space.Space object at 0x7fcdc0a8cfd0>, 'dielectric': [x: 0.375, y: 0.125, w: 0.0625, h: 0.25, eps_r: 10.0], 'source_parameters': <source.Gaussian_pulse object at 0x7fcdc0a8cf98>, 'discretization_space': {'Delta_x': 0.000794217, 'Delta_y': 0.000794217}, 'discretization_time': {'Delta_t': 1.8732833713703236e-12}, 'measurement': [(0.25, 0.25)]}
