@@ -11,8 +11,8 @@ import timeit
 
 start = timeit.default_timer()
 # Source parameters
-x_source = 0.25 # [m]
-y_source = 0.25 # [m]
+x_source = 0.1 # [m]
+y_source = 0.1 # [m]
 J0 = 1 # [A/m**2]
 omega_c = 10**9 # [Hz] = 1 GHz
 sigma = 10**(-10) # [s]
@@ -25,14 +25,15 @@ src = source.Gaussian_pulse(x_source, y_source, J0, tc, sigma)
 
 # PEC box parameters
 x_length, y_length = 2*x_source, 2*y_source # [m]
-t_length = 10*tc # [s]
+t_length = 4*tc # [s]
 
 # Initializing a space with a PEC bounding box
 box = space.Space(x_length, y_length, t_length)
 
 # Discretization parameters (Based on limits in project description)
-print(src.get_lambda_min(1))
-Delta_x = src.get_lambda_min(1)/25
+print("lambda_min: {}".format(src.get_lambda_min(1)))
+print("lambda_min (eps_r): {}".format(src.get_lambda_min(10)))
+Delta_x = src.get_lambda_min(10)/25
 Delta_y = Delta_x
 Delta_t = 1 / (c * np.sqrt(1/Delta_x**2 + 1/Delta_y**2))
 
@@ -56,8 +57,11 @@ box.add_objects([diel])
 # Measurement parameters
 measurement_points = [(x_source, y_source)] # [(x_source, y_source), (1.1*x_source, 1.1*y_source), (1.5*x_source, 1.5*y_source)] # List of measurement point coordinates [(m, m)]
 
+# Debugging:
+print(box)
+
 # Getting measurments
-measurements = box.FDTD(measurement_points, make_animation=False)
+measurements = box.FDTD(measurement_points, plot_space=False ,make_animation=True)
 
 print("Calculation time for 1 measurement point", timeit.default_timer() - start)
 

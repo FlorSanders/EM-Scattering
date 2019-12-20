@@ -35,8 +35,8 @@ t_length = 40*sigma # [s]
 box = space.Space(x_length, y_length, t_length)
 
 # Discretization parameters (Based on limits in project description)
-print(src.get_lambda_min(1))
-Delta_x = src.get_lambda_min(1)/25
+print(src.get_lambda_min(30))
+Delta_x = src.get_lambda_min(30)/25
 Delta_y = Delta_x
 Delta_t = 1 / (c * np.sqrt(1/Delta_x**2 + 1/Delta_y**2))
 
@@ -48,7 +48,7 @@ box.set_source(src)
 box.add_objects([Diel1])
 
 # Measurement parameters
-measurement_points = [(x_source,y_source+0.6),(x_source +0.6,y_source + 0.6)] 
+measurement_points = [(x_source,y_source+0.6),(x_source +0.6,y_source + 0.6)]
 
 # Getting measurments
 measurements = box.FDTD(measurement_points, make_animation=False)

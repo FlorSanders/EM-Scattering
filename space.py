@@ -121,3 +121,11 @@ class Space:
             measurements.append(measure)
         # Returning the list of measurements
         return measurements
+    def __str__(self):
+        s = "Box parameters: {} m, {} m, {} s\n".format(self.x_length, self.y_length, self.t_length)
+        s += "Discretization: {} m, {} m, {} s\n".format(self.Delta_x, self.Delta_y, self.Delta_t)
+        s += str(self.source) + "\n"
+        s += "Dielectrics ({}):\n".format(len(self.dielectrics))
+        for diel in self.dielectrics:
+            s+= str(diel) + "\n"
+        return s
