@@ -1,7 +1,7 @@
 # Importing necessary libraries and files
 import numpy as np
 # import matplotlib.pyplot as plt
-from constants import eps_0, mu_0
+from constants import eps_0, mu_0, c
 import source
 import dielectric
 import measurement
@@ -46,6 +46,25 @@ class Space:
     def add_objects(self, dielectrics):
         self.dielectrics.extend(dielectrics)
 
+    def add_measurement_points(self, measurement_points):
+        self.measurement_points = measurement_points
+        self.interference_times = np.empty(len(measurement_points))
+        for i, meas in enumerate(measurement_points):
+            # reflecting around the PEC walls
+            dist = np.empty((4,2))
+            dist[0,:] = -meas[0],meas[1]
+            dist[1,:] = meas[0],-meas[1]
+            dist[2,:] = 2*self.x_length - meas[0], meas[1]
+            dist[3,:] = meas[0],2*self.y_length - meas[1]
+            dist -= (self.source.pos_x, self.source.pos_y)
+            # euclidian distance
+            dist = np.linalg.norm(dist,axis=-1)
+            min_dist = np.min(dist)
+            self.interference_times[i] = min_dist/c
+        # return an estimate maximum of time before inteference occurs (for
+        # each meas_point)
+        return self.interference_times
+
     ## Makes a discretized representation of the (inner) space with its dielectric properties (eps_r) at the measurement points of E_z
     def initialize_space(self, eps_averaging = True, plot_space = True):
         # Initialize space with relative permittivity (eps_r) 1 everywhere (vacuum)
@@ -74,7 +93,8 @@ class Space:
             measurement.field_plot(self.space, "i", "j", "Visualisatie van de ruimte")
 
     ## Implementation of the FDTD method using the leapfrog scheme
-    def FDTD(self, measurement_points, eps_averaging = True, plot_space = False, make_animation = False):
+    def FDTD(self, eps_averaging = True, plot_space = False, make_animation = False):
+        measurement_points = self.measurement_points
         # Initialize the dielectric properties of the space
         self.initialize_space(eps_averaging, plot_space)
 

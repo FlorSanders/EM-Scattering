@@ -61,7 +61,8 @@ measurement_points = [(x_source, y_source)] # [(x_source, y_source), (1.1*x_sour
 print(box)
 
 # Getting measurments
-measurements = box.FDTD(measurement_points, plot_space=False ,make_animation=True)
+box.add_measurement_points(measurement_points)
+measurements = box.FDTD(plot_space=False ,make_animation=True)
 
 print("Calculation time for 1 measurement point", timeit.default_timer() - start)
 

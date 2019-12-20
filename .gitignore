@@ -1,6 +1,7 @@
 .vscode
 .ropeproject
 __pycache__
+*.pyc
 *.swp
 *.mp4
 *.png

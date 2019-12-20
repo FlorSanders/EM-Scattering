@@ -7,25 +7,27 @@ import space
 import source
 import dielectric
 import measurement
+
 import timeit
 
-start = timeit.default_timer()
 # Source parameters
-x_source = 10 # [m]
-y_source = 10 # [m]
+x_source = 20 # [m]
+y_source = 20 # [m]
 J0 = 1 # [A/m**2]
-#omega_c = 10**9 # [Hz] = 1 GHz
-sigma = 3*10**(-7) # [s]
+omega_c = 10**8 # [Hz] = 1 GHz
+sigma = 5*10**(-8) # [s]
 tc = 3*sigma # [s]
+print("max_freq normal: {}".format(3/(2*np.pi*sigma)))
+print("max_freq modulated: {}".format(3/(2*np.pi*sigma) + omega_c/(2*np.pi)))
 
 # Initializing the source (Choices: Sine_source, Gaussian_pulse, Gaussian_modulated_rd_pulse)
 # src = source.Sine_source(x_source, y_source, J0, omega_c)
-src = source.Gaussian_pulse(x_source, y_source, J0, tc, sigma)
-#src = source.Gaussian_modulated_rf_pulse(x_source, y_source, J0, tc, sigma, omega_c)
+#src = source.Gaussian_pulse(x_source, y_source, J0, tc, sigma)
+src = source.Gaussian_modulated_rf_pulse(x_source, y_source, J0, tc, sigma, omega_c)
 
 # PEC box parameters
 x_length, y_length = 2*x_source, 2*y_source # [m]
-t_length = 4*tc # [s]
+t_length = 3*tc # [s]
 
 # Initializing a space with a PEC bounding box
 box = space.Space(x_length, y_length, t_length)
@@ -53,18 +55,25 @@ diel = dielectric.Dielectric(x_diel, y_diel, w_diel, h_diel, eps_r)
 box.add_objects([diel])
 
 # Measurement parameters
-measurement_points = [(x_source, y_source)] + [(1.1*x_source, 1.1*y_source), (1.5*x_source, 1.5*y_source)] # List of measurement point coordinates [(m, m)]
+measurement_points = [(x_source, y_source)] + [(1.1*x_source, 1.1*y_source)] #, (1.5*x_source, 1.5*y_source)] # List of measurement point coordinates [(m, m)]
 
 # Debugging:
 print(box)
 
 # Getting measurments
-measurements = box.FDTD(measurement_points, plot_space=True ,make_animation=True)
-
-print("Calculation time for 1 measurement point", timeit.default_timer() - start)
+max_times = box.add_measurement_points(measurement_points)
+print(max_times)
+measurements = box.FDTD(plot_space=True ,make_animation=False)
 
 measurement.plot(measurements[0].time_E, src.get_current(measurements[0].time_E), "time [s]", "current [A/m**2]", "Current over time at source")
 
 # Plotting measurements
 for measure in measurements:
     measure.plot_all_separate()
+
+#### freq domain
+ref = np.fft.rfft(measurements[0].E_z)
+for measure in measurements[1:]:
+    freq_e = np.fft.rfft(measure.E_z)
+    plt.plot((freq_e/ref).real)
+    plt.show()

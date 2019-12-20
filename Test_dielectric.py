@@ -51,7 +51,8 @@ box.add_objects([Diel1])
 measurement_points = [(x_source,y_source+0.6),(x_source +0.6,y_source + 0.6)]
 
 # Getting measurments
-measurements = box.FDTD(measurement_points, make_animation=False)
+box.add_measurement_points(measurement_points)
+measurements = box.FDTD(make_animation=False)
 
 measurement.plot(measurements[0].time_E, src.get_current(measurements[0].time_E), "time [s]", "current [A/m**2]", "Current over time at source")
 

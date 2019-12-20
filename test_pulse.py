@@ -44,7 +44,8 @@ box.set_source(src)
 measurement_points = [(x_source, y_source), (1.25*x_source, 1.25*y_source), (1.5*x_source, 1.5*y_source)] # [(x_source, y_source), (1.1*x_source, 1.1*y_source), (1.5*x_source, 1.5*y_source)] # List of measurement point coordinates [(m, m)]
 
 # Getting measurments
-measurements = box.FDTD(measurement_points)
+box.add_measurement_points(measurement_points)
+measurements = box.FDTD()
 
 measurement.plot(measurements[0].time_E, src.get_current(measurements[0].time_E), "time [s]", "current [A/m**2]", "Current over time at source")
 

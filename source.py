@@ -45,7 +45,7 @@ class Gaussian_modulated_rf_pulse(Source):
         return 2 * np.pi * v_min / omega_max
 
     def __str__(self):
-        s = super().__str__(self)
+        s = super().__str__()
         return s + "sigma: {}\ntc: {}\nomega_c: {}\n".format(self.sigma, self.tc, self.omega_c)
 
 class Sine_source(Source):

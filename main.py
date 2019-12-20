@@ -227,7 +227,8 @@ def simulate(simulation):
     box.add_objects(simulation["dielectric"])
     box.set_source(simulation["source_parameters"])
     box.define_discretization(**simulation["discretization_space"], **simulation["discretization_time"])
-    measurements = box.FDTD(simulation["measurement"], make_animation=False)
+    box.add_measurement_points(simulation["measurement"])
+    measurements = box.FDTD(make_animation=False)
     measurement.plot(measurements[0].time_E, box.source.get_current(measurements[0].time_E), "time [s]", "current [A/m**2]", "Current over time at source")
 
     for meas in measurements:
