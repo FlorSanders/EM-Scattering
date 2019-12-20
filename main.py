@@ -4,6 +4,7 @@ from scipy import special as sp
 import space
 import dielectric
 import source as src
+import measurement
 from constants import c
 
 # global dictionaries
@@ -116,7 +117,9 @@ class placing_line_source:
         elif self.profile == 2:
             source_obj = src.Gaussian_modulated_rf_pulse(**self.position, **kwargs)
         lambda_min = source_obj.get_lambda_min(max_eps_r)
+        print()
         print("It is recommended to take the discretization steps between {l1} & {l2} [m]".format(l1=lambda_min/30, l2=lambda_min/20))
+        print("Human readable: {mini:.2f} < Δspace < {maxi:.2f}")
         return source_obj
 
 def discretization(**kwargs):
@@ -175,15 +178,15 @@ def dialog():
     functions["discretization_space"] = [discretization]
     # time
     var_names["discretization_time"] = [ "Delta_t" ]
-    var_description["discretization_time"] = [ "d_t" ]
-    questions["discretization_time"] = "give dis time"
+    var_description["discretization_time"] = [ "Time step (Δt) [s]" ]
+    questions["discretization_time"] = "How do you want to discretize time?"
     functions["discretization_time"] = [lambda **kwargs : kwargs]
 
     ## Measurements
     # number of measurements
     var_names["num_meas"] = [ "num_meas" ]
-    var_description["num_meas"] = [ "Number of meas objects" ]
-    questions["num_meas"] = "Enter the number of meas"
+    var_description["num_meas"] = [ "Number of measurement points" ]
+    questions["num_meas"] = "How many measurement points do you want to add?"
     functions["num_meas"] = [create_meas]
     # iterate over all simulation domains
     for k in keys:
@@ -224,7 +227,11 @@ def simulate(simulation):
     box.add_objects(simulation["dielectric"])
     box.set_source(simulation["source_parameters"])
     box.define_discretization(**simulation["discretization_space"], **simulation["discretization_time"])
-    box.FDTD(simulation["measurement"], make_animation=False)
+    measurements = box.FDTD(simulation["measurement"], make_animation=False)
+    measurement.plot(measurements[0].time_E, box.source.get_current(measurements[0].time_E), "time [s]", "current [A/m**2]", "Current over time at source")
+
+    for meas in measurements:
+        meas.plot_all_separate()
 
 if __name__ == '__main__':
     print("""
