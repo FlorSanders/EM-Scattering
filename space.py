@@ -46,8 +46,11 @@ class Space:
     def add_objects(self, dielectrics):
         self.dielectrics.extend(dielectrics)
 
-    ## Add a list of measurement point in the form of: [(x,y), ...]
-    def add_measurement_points(self, measurement_points):
+    ## Add a list of measurement point in the form of: [(x,y), ...], as well as optional titles for the measurements
+    def add_measurement_points(self, measurement_points, measurement_titles = []):
+        # Make a list of empty titles if no titles were given
+        if(len(measurement_titles) == 0):
+            measurement_titles = [""]*len(measurement_points)
         # list of tuples
         self.measurement_points = np.empty(len(measurement_points), dtype=measurement.Measurement)
         self.interference_times = np.empty(len(measurement_points))
@@ -68,7 +71,7 @@ class Space:
             min_dist = np.min(dist)
             # set interference
             self.interference_times[i] = min_dist/c
-            self.measurement_points[i] = measurement.Measurement(meas[0],meas[1], self.interference_times[i])
+            self.measurement_points[i] = measurement.Measurement(meas[0],meas[1], self.interference_times[i], measurement_titles[i])
         # return an estimate maximum of time before inteference occurs (foreach meas_point)
         return self.interference_times
 
@@ -127,7 +130,7 @@ class Space:
             # 3: Update E_z (inner space, edges = 0 as per boundary conditions)
             self.E_z[1:-1, 1:-1] += self.Delta_t / (eps_0 * self.Delta_x) * (self.H_y[1:, 1:-1] - self.H_y[:-1, 1:-1]) / self.space
             self.E_z[1:-1, 1:-1] -= self.Delta_t / (eps_0 * self.Delta_y) * (self.H_x[1:-1, 1:] - self.H_x[1:-1, :-1]) / self.space
-            self.E_z[i_source, j_source] -= self.source.get_current((n-1/2)*self.Delta_t) * self.Delta_t / (eps_0 * self.space[i_source, j_source])
+            self.E_z[i_source, j_source] -= self.source.get_current((n-1/2)*self.Delta_t) * self.Delta_t / (self.Delta_x * self.Delta_y * eps_0 * self.space[i_source, j_source])
 
             # 4: Saving measurements
             for meas in self.measurement_points:
@@ -138,6 +141,7 @@ class Space:
                 E_z = self.E_z[int(i + (not(eps_averaging))/2), int(j + (not(eps_averaging))/2)]
                 meas.append_fields(H_x, H_y, E_z)
 
+            # If requested, a periodic visualisation of the space is given
             if(visualize_fields != 0 and n % visualize_fields == 0):
                 measurement.field_plot(abs(self.E_z), "i", "j", "E_z")
                 measurement.field_plot(np.sqrt(self.H_x[1:,]**2 + self.H_y[:,1:]**2), "i", "j", "H")      

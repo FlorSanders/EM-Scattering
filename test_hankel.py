@@ -65,7 +65,7 @@ print(box)
 # Getting measurments
 max_times = box.add_measurement_points(measurement_points)
 print(max_times)
-measurements = box.FDTD(plot_space=True ,make_animation=False)
+measurements = box.FDTD(plot_space=True ,visualize_fields=False)
 
 measurement.plot(measurements[0].time_E, src.get_current(measurements[0].time_E), "time [s]", "current [A/m**2]", "Current over time at source")
 
@@ -109,7 +109,7 @@ for meas in measurements[1:]:
     meas_e = meas_e[use_indices]
 
     plt.plot(reffreq, abs(meas_e)/SOURCE(reffreq))
-    plt.plot(reffreq, abs(h)*1.5*10**8)
+    plt.plot(reffreq, abs(h))
     plt.show()
     plt.plot(reffreq, abs(meas_e)/SOURCE(reffreq))
     plt.plot(reffreq, abs(h))
