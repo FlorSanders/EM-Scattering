@@ -46,11 +46,14 @@ class Space:
     def add_objects(self, dielectrics):
         self.dielectrics.extend(dielectrics)
 
+    ## Add a list of measurement point in the form of: [(x,y), ...]
     def add_measurement_points(self, measurement_points):
-        self.measurement_points = measurement_points
+        # list of tuples
+        self.measurement_points = np.empty(len(measurement_points), dtype=measurement.Measurement)
         self.interference_times = np.empty(len(measurement_points))
         for i, meas in enumerate(measurement_points):
-            # reflecting around the PEC walls
+            # reflecting on the PEC walls
+            # dist : the 4 reflection points of measurement in the PEC
             dist = np.empty((4,2))
             dist[0,:] = -meas[0],meas[1]
             dist[1,:] = meas[0],-meas[1]
@@ -59,8 +62,14 @@ class Space:
             dist -= (self.source.pos_x, self.source.pos_y)
             # euclidian distance
             dist = np.linalg.norm(dist,axis=-1)
+            # the least distance between the source & the reflection point of
+            # the measurement will be approx the distance the wave has to
+            # travel
             min_dist = np.min(dist)
+            # set interference
+            self.measurement_points[i] = measurement.Measurement(meas[0],meas[1])
             self.interference_times[i] = min_dist/c
+            self.measurement_points[i].interference_time = self.interference_times[i]
         # return an estimate maximum of time before inteference occurs (for
         # each meas_point)
         return self.interference_times
@@ -125,22 +134,20 @@ class Space:
             measurement.make_animation(np.sqrt(self.H_x[1:,:,:]**2 + self.H_y[:,1:,:]**2), name="ani_H_xy")
 
         # Getting measurements
-        measurements = []
-        for point in measurement_points:
+        # Making the discrete time arrays for H (offset by half a step) and E-measurements
+        time_H = (np.arange(self.N_t) + 1/2) * self.Delta_t
+        time_E = np.arange(self.N_t) * self.Delta_t
+        for meas in measurement_points:
             # Rescaling the locations to indices
-            i, j = point[0]/self.Delta_x, point[1]/self.Delta_y
-            # Making the discrete time arrays for H (offset by half a step) and E-measurements
-            time_H = (np.arange(self.N_t) + 1/2) * self.Delta_t
-            time_E = np.arange(self.N_t) * self.Delta_t
+            i, j = meas.pos_x/self.Delta_x, meas.pos_y/self.Delta_y
             # Slicing our matrix to obtain correct measurements (Lower bound approximation to our indices)
             # Assuming no i, j < 1/2
             H_x = self.H_x[int(i - 1/2 + (not(eps_averaging))/2), int(j - 1/2 + (not(eps_averaging))/2), :]
             H_y = self.H_y[int(i - 1/2 + (not(eps_averaging))/2), int(j - 1/2 + (not(eps_averaging))/2), :]
             E_z = self.E_z[int(i + (not(eps_averaging))/2), int(j + (not(eps_averaging))/2), :]
-            measure = measurement.Measurement(point[0], point[1], time_H, time_E, H_x, H_y, E_z)
-            measurements.append(measure)
+            meas.set_fields(time_H, time_E, H_x, H_y, E_z)
         # Returning the list of measurements
-        return measurements
+        return measurement_points
     def __str__(self):
         s = "Box parameters: {} m, {} m, {} s\n".format(self.x_length, self.y_length, self.t_length)
         s += "Discretization: {} m, {} m, {} s\n".format(self.Delta_x, self.Delta_y, self.Delta_t)
