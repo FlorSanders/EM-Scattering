@@ -33,10 +33,10 @@ class Space:
 
         # Initializing zero-valued fields of the correct size (as 3D numpy array)
         # E_z field at the corners of our discretized blocks
-        self.E_z = np.zeros((self.N_x, self.N_y, self.N_t))
+        self.E_z = np.zeros((self.N_x, self.N_y))
         # H_x and H_y fields on the edges of the discretized blocks
-        self.H_x = np.zeros((self.N_x, self.N_y - 1, self.N_t))
-        self.H_y = np.zeros((self.N_x - 1, self.N_y, self.N_t))
+        self.H_x = np.zeros((self.N_x, self.N_y - 1))
+        self.H_y = np.zeros((self.N_x - 1, self.N_y))
 
     ## Set the line source of our space
     def set_source(self, source):
@@ -67,11 +67,9 @@ class Space:
             # travel
             min_dist = np.min(dist)
             # set interference
-            self.measurement_points[i] = measurement.Measurement(meas[0],meas[1])
             self.interference_times[i] = min_dist/c
-            self.measurement_points[i].interference_time = self.interference_times[i]
-        # return an estimate maximum of time before inteference occurs (for
-        # each meas_point)
+            self.measurement_points[i] = measurement.Measurement(meas[0],meas[1], self.interference_times[i])
+        # return an estimate maximum of time before inteference occurs (foreach meas_point)
         return self.interference_times
 
     ## Makes a discretized representation of the (inner) space with its dielectric properties (eps_r) at the measurement points of E_z
@@ -102,52 +100,52 @@ class Space:
             measurement.field_plot(self.space, "i", "j", "Visualisatie van de ruimte")
 
     ## Implementation of the FDTD method using the leapfrog scheme
-    def FDTD(self, eps_averaging = True, plot_space = False, make_animation = False):
-        measurement_points = self.measurement_points
+    def FDTD(self, eps_averaging = True, plot_space = False, visualize_fields = 0):
         # Initialize the dielectric properties of the space
         self.initialize_space(eps_averaging, plot_space)
+        # Making the discrete time arrays for H (offset by half a step) and E-measurements
+        time_H = (np.arange(self.N_t) + 1/2) * self.Delta_t
+        time_E = np.arange(self.N_t) * self.Delta_t
+        for meas in self.measurement_points:
+            # Adding the time arrays to our measurements
+            meas.set_time(time_H, time_E)
+            meas.append_fields(0,0,0)
+        # Returning the list of measurements
 
         # Calculating the discretized postions of our line source
         i_source = int(self.source.pos_x / self.Delta_x)
         j_source = int(self.source.pos_y / self.Delta_y)
-        # if(make_animation):
-        #     ims = []
+
         # Use the iterative update functions for our fields
         for n in range(1, self.N_t):
             # 1: Update H_y
-            self.H_y[:, :, n] = self.H_y[:, :, n - 1]
-            self.H_y[:, :, n] += self.Delta_t / (mu_0 * self.Delta_x) * (self.E_z[1:, :, n - 1] - self.E_z[:-1, :, n - 1])
+            self.H_y[:, :] += self.Delta_t / (mu_0 * self.Delta_x) * (self.E_z[1:, :] - self.E_z[:-1, :])
 
             # 2: Update H_x
-            self.H_x[:, :, n] = self.H_x[:, :, n - 1]
-            self.H_x[:, :, n] -= self.Delta_t / (mu_0 * self.Delta_y) * (self.E_z[:, 1:, n - 1] - self.E_z[:, :-1, n - 1])
+            self.H_x[:, :] -= self.Delta_t / (mu_0 * self.Delta_y) * (self.E_z[:, 1:] - self.E_z[:, :-1])
 
             # 3: Update E_z (inner space, edges = 0 as per boundary conditions)
-            self.E_z[:, :, n] = self.E_z[:, :, n - 1]
-            self.E_z[1:-1, 1:-1, n] += self.Delta_t / (eps_0 * self.Delta_x) * (self.H_y[1:, 1:-1, n] - self.H_y[:-1, 1:-1, n]) / self.space
-            self.E_z[1:-1, 1:-1, n] -= self.Delta_t / (eps_0 * self.Delta_y) * (self.H_x[1:-1, 1:, n] - self.H_x[1:-1, :-1, n]) / self.space
-            self.E_z[i_source, j_source, n] -= self.source.get_current((n-1/2)*self.Delta_t) * self.Delta_t / (eps_0 * self.space[i_source, j_source])
+            self.E_z[1:-1, 1:-1] += self.Delta_t / (eps_0 * self.Delta_x) * (self.H_y[1:, 1:-1] - self.H_y[:-1, 1:-1]) / self.space
+            self.E_z[1:-1, 1:-1] -= self.Delta_t / (eps_0 * self.Delta_y) * (self.H_x[1:-1, 1:] - self.H_x[1:-1, :-1]) / self.space
+            self.E_z[i_source, j_source] -= self.source.get_current((n-1/2)*self.Delta_t) * self.Delta_t / (eps_0 * self.space[i_source, j_source])
 
-        # Making an animation
-        if(make_animation):
-            measurement.make_animation(self.E_z, name="ani_E_z")
-            measurement.make_animation(np.sqrt(self.H_x[1:,:,:]**2 + self.H_y[:,1:,:]**2), name="ani_H_xy")
+            # 4: Saving measurements
+            for meas in self.measurement_points:
+                # Rescaling the locations to indices
+                i, j = meas.pos_x/self.Delta_x, meas.pos_y/self.Delta_y
+                H_x = self.H_x[int(i - 1/2 + (not(eps_averaging))/2), int(j - 1/2 + (not(eps_averaging))/2)]
+                H_y = self.H_y[int(i - 1/2 + (not(eps_averaging))/2), int(j - 1/2 + (not(eps_averaging))/2)]
+                E_z = self.E_z[int(i + (not(eps_averaging))/2), int(j + (not(eps_averaging))/2)]
+                meas.append_fields(H_x, H_y, E_z)
+
+            if(visualize_fields != 0 and n % visualize_fields == 0):
+                measurement.field_plot(abs(self.E_z), "i", "j", "E_z")
+                measurement.field_plot(np.sqrt(self.H_x[1:,]**2 + self.H_y[:,1:]**2), "i", "j", "H")      
 
         # Getting measurements
-        # Making the discrete time arrays for H (offset by half a step) and E-measurements
-        time_H = (np.arange(self.N_t) + 1/2) * self.Delta_t
-        time_E = np.arange(self.N_t) * self.Delta_t
-        for meas in measurement_points:
-            # Rescaling the locations to indices
-            i, j = meas.pos_x/self.Delta_x, meas.pos_y/self.Delta_y
-            # Slicing our matrix to obtain correct measurements (Lower bound approximation to our indices)
-            # Assuming no i, j < 1/2
-            H_x = self.H_x[int(i - 1/2 + (not(eps_averaging))/2), int(j - 1/2 + (not(eps_averaging))/2), :]
-            H_y = self.H_y[int(i - 1/2 + (not(eps_averaging))/2), int(j - 1/2 + (not(eps_averaging))/2), :]
-            E_z = self.E_z[int(i + (not(eps_averaging))/2), int(j + (not(eps_averaging))/2), :]
-            meas.set_fields(time_H, time_E, H_x, H_y, E_z)
-        # Returning the list of measurements
-        return measurement_points
+        return self.measurement_points
+    
+    ## String representation function for our box-space
     def __str__(self):
         s = "Box parameters: {} m, {} m, {} s\n".format(self.x_length, self.y_length, self.t_length)
         s += "Discretization: {} m, {} m, {} s\n".format(self.Delta_x, self.Delta_y, self.Delta_t)
