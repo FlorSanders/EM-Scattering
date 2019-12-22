@@ -103,7 +103,7 @@ class Space:
 
         # Visualizing our space using a plot
         if(plot_space):
-            self.field_plot(self.space, "i", "j", "Visualisatie van de ruimte")
+            self.field_plot(self.space, "i (x-axis)", "j (y-axis)", "Visualisation of the space")
 
     ## Implementation of the FDTD method using the leapfrog scheme
     def FDTD(self, eps_averaging = True, plot_space = False, visualize_fields = 0):
@@ -155,13 +155,14 @@ class Space:
 
     def field_plot(self, field, x_title, y_title, title):
         # visualizing the source & measurement points
-        plt.scatter(self.meas_pos_x, self.meas_pos_y, c='silver')
-        plt.scatter(self.source.pos_x//self.Delta_x, self.source.pos_y//self.Delta_y, c='red')
+        plt.scatter(self.meas_pos_x, self.meas_pos_y, c='silver', label="measurement points")
+        plt.scatter(self.source.pos_x//self.Delta_x, self.source.pos_y//self.Delta_y, c='red', label="source point")
         # get axis orientation right
         plt.imshow(np.transpose(field), origin='lower')
         plt.title(title)
         plt.xlabel(x_title)
         plt.ylabel(y_title)
+        plt.legend(bbox_to_anchor=(1,1), loc='upper left')
         plt.show()
 
     ## String representation function for our box-space

@@ -84,8 +84,9 @@ class Measurement:
     def plot(self, *args, **kwargs):
         fig = plt.figure()
         try:
-            plt.axvline(self.interference_time)
-            plt.axvline(self.wave_time, color='green')
+            plt.axvline(self.interference_time, linestyle='--', label="Interference can start")
+            plt.axvline(self.wave_time, color='green', label="Wave from source arrives")
+            plt.legend(title='Guidelines:')
         except AttributeError:
             pass
         plot(*args, fig=fig, **kwargs)

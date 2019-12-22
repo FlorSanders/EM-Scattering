@@ -10,13 +10,15 @@ import measurement
 
 import timeit
 
+plt.rcParams.update({'font.size':22})
+
 # Source parameters
-x_source = 1000000 # [m]
-y_source = 1000000 # [m]
-J0 = 1 # [A/m**2]
+x_source = 100 # [m]
+y_source = 100 # [m]
+J0 = 1 # [A]
 omega_c = 10**5 # [Hz] = 1 GHz
 omega_c = 0 # [Hz] = 1 GHz
-sigma = 5*10**(-4) # [s]
+sigma = 5*10**(-9) # [s]
 tc = 3*sigma # [s]
 print("max_freq normal: {}".format(3/(2*np.pi*sigma)))
 print("max_freq modulated: {}".format(3/(2*np.pi*sigma) + omega_c/(2*np.pi)))
@@ -28,7 +30,7 @@ src = source.Gaussian_pulse(x_source, y_source, J0, tc, sigma)
 
 # PEC box parameters
 x_length, y_length = 2*x_source, 2*y_source # [m]
-t_length = 6*tc # [s]
+t_length = 12*tc # [s]
 
 # Initializing a space with a PEC bounding box
 box = space.Space(x_length, y_length, t_length)
@@ -36,42 +38,29 @@ box = space.Space(x_length, y_length, t_length)
 # Adding the source to our space
 box.set_source(src)
 
-# Parameters for the dielectric
-x_diel = 1.5*x_source # [m]
-y_diel = 0.5*y_source # [m]
-w_diel = 0.25*x_source # [m]
-h_diel = y_source # [m]
-eps_r = 10 # [-]
-
 # Discretization parameters (Based on limits in project description)
-#Delta_x = src.get_lambda_min(eps_r)/25
 Delta_x = src.get_lambda_min(1)/25
 Delta_y = Delta_x
-Delta_t = 1 / (c * np.sqrt(1/Delta_x**2 + 1/Delta_y**2))
+Delta_t = 1 / (c * np.sqrt(1/Delta_x**2 + 1/Delta_y**2)) / 3
 
 # Handing discretization parameters to our space
 box.define_discretization(Delta_x, Delta_y, Delta_t)
 
-# Initializing the dielectric and adding it to the box
-diel = dielectric.Dielectric(x_diel, y_diel, w_diel, h_diel, eps_r)
-#box.add_objects([diel])
-
 # Measurement parameters
-measurement_points = [(x_source, y_source)] + [(1.1*x_source, 1.1*y_source)] #, (1.5*x_source, 1.5*y_source)] # List of measurement point coordinates [(m, m)]
+measurement_points = [(x_source, y_source)] + [(1.1*x_source, 1.1*y_source)] + [(1.2*x_source, 1.24*y_source)] # List of measurement point coordinates [(m, m)]
 
 # Debugging:
 print(box)
 
 # Getting measurments
 max_times = box.add_measurement_points(measurement_points)
-print(max_times)
-measurements = box.FDTD(plot_space=True ,visualize_fields=False)
+measurements = box.FDTD(plot_space=True ,visualize_fields=00)
 
 measurement.plot(measurements[0].time_E, src.get_current(measurements[0].time_E), "time [s]", "current [A/m**2]", "Current over time at source")
 
 # Plotting measurements
 for measure in measurements:
-    #measure.plot_all_separate()
+    measure.plot_all_separate()
     pass
 
 #### freq domain
@@ -81,10 +70,10 @@ def E_z_hankel(x, y, omega):
     return E_z
 def SOURCE(omega):
     fourier = box.source.J0*np.sqrt(2*np.pi)*sigma*np.exp(-(sigma**2)*(omega**2)/2)
-    return fourier # * Delta_t / eps_0
+    return fourier
 
 # restrict to bandwidth source
-pad_zeros = 10000
+pad_zeros = 100000
 reffreq = np.fft.rfftfreq(pad_zeros, d=Delta_t)*2*np.pi # array of omega
 use_indices = np.where((reffreq >= (omega_c-3/sigma)) & (reffreq <= (omega_c + 3/sigma)))
 reffreq = reffreq[use_indices]
@@ -93,12 +82,6 @@ validE_z = measurements[0].E_z[:int(measurements[0].interference_time//Delta_t)]
 ref = np.fft.rfft(validE_z, n=pad_zeros)*Delta_t
 ref = ref[use_indices]
 
-plt.plot(reffreq, abs(ref))
-plt.show()
-plt.plot(reffreq, SOURCE(reffreq))
-plt.show()
-plt.plot(reffreq, abs(ref)/SOURCE(reffreq))
-plt.show()
 for meas in measurements[1:]:
     # hankel
     h = E_z_hankel(meas.pos_x, meas.pos_y, reffreq)
@@ -108,9 +91,31 @@ for meas in measurements[1:]:
     # restrict to bandwith source
     meas_e = meas_e[use_indices]
 
-    plt.plot(reffreq, abs(meas_e)/SOURCE(reffreq))
-    plt.plot(reffreq, abs(h))
+    plt.plot(reffreq, abs(meas_e)/SOURCE(reffreq), label="experimental")
+    plt.plot(reffreq, abs(h), label="analytical")
+    plt.xlabel(r"$\omega$ [Hz]")
+    plt.ylabel(r"Amplitude [$\frac{V}{m}$]")
+    plt.title(r"Frequency domain of $e_z$ in ({:g} , {:g})".format(meas.pos_x, meas.pos_y))
+    plt.legend()
     plt.show()
-    plt.plot(reffreq, abs(meas_e)/SOURCE(reffreq))
-    plt.plot(reffreq, abs(h))
+    plt.plot(reffreq, np.angle(meas_e/SOURCE(reffreq)), label="experimental")
+    plt.plot(reffreq, np.angle(h), label="analytical")
+    plt.xlabel(r"$\omega$ [Hz]")
+    plt.ylabel(r"Phase [radians]")
+    plt.title(r"Frequency domain of $e_z$ in ({:g} , {:g})".format(meas.pos_x, meas.pos_y))
+    plt.legend()
+    plt.show()
+    plt.plot(reffreq, (meas_e/SOURCE(reffreq)).real)
+    plt.plot(reffreq, h.real)
+    plt.xlabel(r"$\omega$ [Hz]")
+    plt.ylabel(r"Real part [-]")
+    plt.title(r"Frequency domain of $e_z$ in ({:g} , {:g})".format(meas.pos_x, meas.pos_y))
+    plt.legend()
+    plt.show()
+    plt.plot(reffreq, (meas_e/SOURCE(reffreq)).imag)
+    plt.plot(reffreq, h.imag)
+    plt.xlabel(r"$\omega$ [Hz]")
+    plt.ylabel(r"Imag part [-]")
+    plt.title(r"Frequency domain of $e_z$ in ({:g} , {:g})".format(meas.pos_x, meas.pos_y))
+    plt.legend()
     plt.show()
