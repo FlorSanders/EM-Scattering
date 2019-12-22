@@ -16,7 +16,7 @@ y_source = 0.1 # [m]
 J0 = 1 # [A/m**2]
 omega_c = 10**9 # [Hz] = 1 GHz
 sigma = 10**(-10) # [s]
-tc = 3*sigma # [s]
+tc = 4*sigma # [s]
 
 # Initializing the source (Choices: Sine_source, Gaussian_pulse, Gaussian_modulated_rd_pulse)
 # src = source.Sine_source(x_source, y_source, J0, omega_c)
@@ -52,7 +52,7 @@ eps_r = 10 # [-]
 
 # Initializing the dielectric and adding it to the box
 diel = dielectric.Dielectric(x_diel, y_diel, w_diel, h_diel, eps_r)
-box.add_objects([diel])
+#box.add_objects([diel])
 
 # Measurement parameters
 measurement_points = [(x_source, y_source)] # [(x_source, y_source), (1.1*x_source, 1.1*y_source), (1.5*x_source, 1.5*y_source)] # List of measurement point coordinates [(m, m)]
@@ -62,7 +62,7 @@ print(box)
 
 # Getting measurments
 box.add_measurement_points(measurement_points)
-measurements = box.FDTD(plot_space=False ,visualize_fields=100)
+measurements = box.FDTD(plot_space=False ,visualize_fields=500)
 
 print("Calculation time for 1 measurement point", timeit.default_timer() - start)
 
@@ -70,4 +70,5 @@ measurement.plot(measurements[0].time_E, src.get_current(measurements[0].time_E)
 
 # Plotting measurements
 for measure in measurements:
-    measure.plot_all_separate()
+    measure.plot_H_xy()
+    measure.plot_E_z()

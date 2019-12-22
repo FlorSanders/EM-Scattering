@@ -138,14 +138,15 @@ class Space:
             # 4: Saving measurements
             for meas in self.measurement_points:
                 # Rescaling the locations to indices
-                i, j = meas.pos_x/self.Delta_x, meas.pos_y/self.Delta_y
-                H_x = self.H_x[int(i - 1/2 + (not(eps_averaging))/2), int(j - 1/2 + (not(eps_averaging))/2)]
-                H_y = self.H_y[int(i - 1/2 + (not(eps_averaging))/2), int(j - 1/2 + (not(eps_averaging))/2)]
-                E_z = self.E_z[int(i + (not(eps_averaging))/2), int(j + (not(eps_averaging))/2)]
+                i, j = int(meas.pos_x/self.Delta_x), int(meas.pos_y/self.Delta_y)
+                H_x = self.H_x[i, j]
+                H_y = self.H_y[i, j]
+                E_z = self.E_z[i, j]
                 meas.append_fields(H_x, H_y, E_z)
 
             # If requested, a periodic visualisation of the space is given
             if(visualize_fields != 0 and n % visualize_fields == 0):
+                print(n*self.Delta_t)
                 self.field_plot(abs(self.E_z), "i", "j", "E_z")
                 self.field_plot(np.sqrt(self.H_x[1:,]**2 + self.H_y[:,1:]**2), "i", "j", "H")
 
