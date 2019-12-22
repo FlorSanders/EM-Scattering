@@ -55,7 +55,7 @@ print(np.shape(box.E_z))
 
 # Measurement parameters
 measurement_points = [(x_source, y_source)] 
-measurement_titles = ["field at source"]
+measurement_titles = ["field at source", "field at plane interface", "Transmitted field"]
 # Debugging:
 # print(box)
 
@@ -63,7 +63,7 @@ start = timeit.default_timer()
 
 # Getting measurments
 box.add_measurement_points(measurement_points, measurement_titles)
-measurements = box.FDTD(plot_space=True ,visualize_fields=False, eps_averaging=True)
+measurements = box.FDTD(plot_space=True ,visualize_fields=False, eps_averaging=False)
 
 print("Calculation time for 1 measurement point", timeit.default_timer() - start)
 
