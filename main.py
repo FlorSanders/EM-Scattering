@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 # Importing necessary libraries and files
 import numpy as np
 from scipy import special as sp
@@ -60,7 +63,7 @@ def create_dielek(num_dielek):
     if num_dielek >= 1:
         print("Note: the position of the dielectric object is referred from it's left down corner to the left down corner of the grid")
     var_names["dielectric"] = [ "pos_x", "pos_y", "width", "height", "eps_r" ]
-    var_description["dielectric"] = [ "x-position [m]", "y-postition [m]", "width [m]", "height [m]", "Relative permittivity (εᵣ) [-]" ]
+    var_description["dielectric"] = [ "x-position [m]", "y-postition [m]", "width (x-axis) [m]", "height (y-axis) [m]", "Relative permittivity (εᵣ) [-]" ]
     questions["dielectric"] = []
     functions["dielectric"] = []
     for i in range(num_dielek):
@@ -100,12 +103,12 @@ class placing_line_source:
         if profile == 1:
             # profile
             var_names["source_parameters"] = [ "J0", "sigma", "tc" ]
-            var_description["source_parameters"] = ["Source amplitude (J₀) [A/m²]", "Pulse width (σ) [s]", "Central time (tc) [s]"]
+            var_description["source_parameters"] = ["Source amplitude (J₀) [A]", "Pulse width (σ) [s]", "Central time (tc) [s]"]
             questions["source_parameters"] = "What are the parameters for the Gaussian pulse source?"
             functions["source_parameters"] = [self.pulse]
         elif profile == 2:
             var_names["source_parameters"] = [ "J0", "sigma", "tc", "omega_c" ]
-            var_description["source_parameters"] = ["Source amplitude (J₀) [A/m²]", "Pulse width (σ) [s]", "Central time (tc) [s]", "Central frequency (ω_c) [Hz]" ]
+            var_description["source_parameters"] = ["Source amplitude (J₀) [A]", "Pulse width (σ) [s]", "Central time (tc) [s]", "Central frequency (ω_c) [Hz]" ]
             questions["source_parameters"] = "What are the parameters for the Gaussian-modulated sinusoidal radio-frequency pulse source?"
             functions["source_parameters"] = [self.pulse]
         else:
@@ -118,8 +121,8 @@ class placing_line_source:
             source_obj = src.Gaussian_modulated_rf_pulse(**self.position, **kwargs)
         lambda_min = source_obj.get_lambda_min(max_eps_r)
         print()
-        print("It is recommended to take the discretization steps between {l1} & {l2} [m]".format(l1=lambda_min/30, l2=lambda_min/20))
-        print("Human readable: {mini:.2f} < Δspace < {maxi:.2f}")
+        print("It is recommended to take the discretization steps between exact {l1} & {l2} [m]".format(l1=lambda_min/30, l2=lambda_min/20))
+        print("Human readable: {mini:.2g} < Δspace < {maxi:.2g}".format(mini=lambda_min/30, maxi=lambda_min/20))
         return source_obj
 
 def discretization(**kwargs):
@@ -136,12 +139,12 @@ def dialog():
     """
     simulation = {}         # simulation dict: contains all usefull objects
     # iteration order of questions/subjects
-    keys = ["space", "num_dielek", "dielectric", "line_source", "source_profile", "source_parameters", "discretization_space", "discretization_time", "num_meas", "measurement"]
+    keys = ["space", "num_dielek", "dielectric", "eps_avg", "line_source", "source_profile", "source_parameters", "discretization_space", "discretization_time", "num_meas", "measurement"]
 
     ## All variable names, descriptions
     # space
     var_names["space"] = [ "x_length", "y_length", "t_length"]
-    var_description["space"] = [ "The length of the simulation domain (x-axis) [m]", "The heigth of the simulation domain (y-axis) [m]", "The duration of the simulation [s]"]
+    var_description["space"] = [ "The length of the simulation domain (x-axis) [m]", "The height of the simulation domain (y-axis) [m]", "The duration of the simulation [s]"]
     questions["space"] = "What are the dimensions of the simulation domain?"
     functions["space"] = [space.Space]
 
@@ -153,6 +156,15 @@ def dialog():
 
     # dielectric objects
     # See create_dielek
+
+    ## Epsilon averaging
+    var_names["eps_avg"] = ["eps_averaging"]
+    var_description["eps_avg"] = ["Relative permittivity averaging, enter number of choice"]
+    questions["eps_avg"] = \
+"""Do you want to use relative permittivity averaging? See our report for a full explanation.
+0) No εᵣ averaging
+1) εᵣ averaging"""
+    functions["eps_avg"] = [lambda **kwargs : bool(kwargs["eps_averaging"])]
 
     ## Line source
     # position
@@ -227,9 +239,10 @@ def simulate(simulation):
     box.add_objects(simulation["dielectric"])
     box.set_source(simulation["source_parameters"])
     box.define_discretization(**simulation["discretization_space"], **simulation["discretization_time"])
-    box.add_measurement_points(simulation["measurement"])
-    measurements = box.FDTD(make_animation=False)
-    measurement.plot(measurements[0].time_E, box.source.get_current(measurements[0].time_E), "time [s]", "current [A/m**2]", "Current over time at source")
+    titles = [ "at ({:g} , {:g})".format(meas[0], meas[1]) for meas in simulation["measurement"]]
+    box.add_measurement_points(simulation["measurement"], titles)
+    measurements = box.FDTD(eps_averaging=simulation["eps_avg"], plot_space=True, visualize_fields = 00)
+    measurement.plot(measurements[0].time_E, box.source.get_current(measurements[0].time_E), "time [s]", "current [A]", "Current over time at source")
 
     for meas in measurements:
         meas.plot_all_separate()
@@ -250,6 +263,8 @@ Note2: All input values are (floating) numbers
     use this notation: 1.23e-67
     In all other case, a ValueError will be thrown and you'll have to start again
           """)
-    simulation = dialog()
-    print(simulation)
+    #simulation = dialog()
+    #print(simulation)
+    simulation = {'space': space.Space(200,500,4e-6), 'dielectric': [ dielectric.Dielectric(20, 200, 160, 100, 7), dielectric.Dielectric(20,300,160,100,15) ],
+                  'eps_avg': False, 'source_parameters': src.Gaussian_pulse(100,100,1,4e-7,1e-7), 'discretization_space': {'Delta_x': 0.6, 'Delta_y': 0.75}, 'discretization_time': {'Delta_t': 1e-09}, 'measurement': [(20.0, 400.0), (100.0, 120.0), (100.0, 220.0), (100.0, 320.0)]}
     simulate(simulation)
