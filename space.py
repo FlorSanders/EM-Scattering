@@ -143,6 +143,7 @@ class Space:
 
             # If requested, a periodic visualisation of the space is given
             if(visualize_fields != 0 and n % visualize_fields == 0):
+                print(n*self.Delta_t)
                 measurement.field_plot(abs(self.E_z), "i", "j", "E_z")
                 measurement.field_plot(np.sqrt(self.H_x[1:,]**2 + self.H_y[:,1:]**2), "i", "j", "H")      
 

@@ -4,14 +4,17 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 ### Simple plotting function taking care of matplotlib syntax
-def plot(x_values, y_values, x_title, y_title, title, interference = 0, yscale = 'linear'):
-    plt.plot(x_values, y_values, color='black', marker='o')
+def plot(x_values, y_values, x_title, y_title, title, interference = 0, yscale = 'linear', filename = "none"):
+    fig = plt.figure()
+    plt.plot(x_values, y_values, marker=".")
     if(interference != 0):
         plt.axvline(interference)
     plt.title(title)
     plt.xlabel(x_title)
     plt.ylabel(y_title)
     plt.yscale(yscale)
+    if filename != "none":
+        fig.savefig("./plots/" + filename + ".png", dpi = fig.dpi)
     plt.show()
 
 def field_plot(field, x_title, y_title, title):
@@ -29,6 +32,18 @@ def make_animation(field, save = True, name = "animation"):
 
     im_ani = animation.ArtistAnimation(fig, images, interval=25, blit=True,repeat_delay=100)
     im_ani.save(name + '.mp4')
+    plt.show()
+
+def plot_multiple(x_values_list, y_values_list, labels_list, x_title, y_title, title, filename = "none"):
+    fig = plt.figure()
+    for i in range(len(x_values_list)):
+        plt.plot(x_values_list[i], y_values_list[i], label = labels_list[i], marker = ".")
+    plt.title(title)
+    plt.xlabel(x_title)
+    plt.ylabel(y_title)
+    plt.legend()
+    if filename != "none":
+        fig.savefig("./plots/" + filename + ".png", dpi = fig.dpi)
     plt.show()
 
 ### Measurement class: Combine all measurement data for a certain point into a single callable instance
@@ -66,10 +81,12 @@ class Measurement:
     def plot_H_y(self):
         plot(self.time_H, self.H_y, "time (s)" , "H_y (A/m)", "H_y " + self.title)
     ## Plot function for E_z
-    def plot_E_z(self):
-        plot(self.time_E, self.E_z, "time (s)" , "E_z (V/m)", "E_z " + self.title)
+    def plot_E_z(self, filename = "none"):
+        plot(self.time_E, self.E_z, "time (s)" , "E_z (V/m)", "E_z " + self.title, filename = filename)
     ## Plot function for all measurement data
     def plot_all_separate(self):
         self.plot_H_x()
         self.plot_H_y()
         self.plot_E_z()
+    def plot_H_xy(self, filename = "none"):
+        plot_multiple([self.time_H, self.time_H], [self.H_x, self.H_y], ["H_x", "H_y"], "time (s)", "H (A/m)", "H " + self.title, filename= filename)
