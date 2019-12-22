@@ -1,6 +1,6 @@
 # Importing necessary libraries and files
 import numpy as np
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from constants import eps_0, mu_0, c
 import source
 import dielectric
@@ -72,7 +72,10 @@ class Space:
             # set interference
             self.interference_times[i] = min_dist/c
             self.measurement_points[i] = measurement.Measurement(meas[0],meas[1], self.interference_times[i], measurement_titles[i])
+            self.measurement_points[i].wave_time = np.linalg.norm( (meas[0]-self.source.pos_x, meas[1]-self.source.pos_y) )/c
         # return an estimate maximum of time before inteference occurs (foreach meas_point)
+        self.meas_pos_x = np.asarray([ meas.pos_x for meas in self.measurement_points])//self.Delta_x
+        self.meas_pos_y = np.asarray([ meas.pos_y for meas in self.measurement_points])//self.Delta_y
         return self.interference_times
 
     ## Makes a discretized representation of the (inner) space with its dielectric properties (eps_r) at the measurement points of E_z
@@ -100,7 +103,7 @@ class Space:
 
         # Visualizing our space using a plot
         if(plot_space):
-            measurement.field_plot(self.space, "i", "j", "Visualisatie van de ruimte")
+            self.field_plot(self.space, "i", "j", "Visualisatie van de ruimte")
 
     ## Implementation of the FDTD method using the leapfrog scheme
     def FDTD(self, eps_averaging = True, plot_space = False, visualize_fields = 0):
@@ -143,12 +146,23 @@ class Space:
 
             # If requested, a periodic visualisation of the space is given
             if(visualize_fields != 0 and n % visualize_fields == 0):
-                measurement.field_plot(abs(self.E_z), "i", "j", "E_z")
-                measurement.field_plot(np.sqrt(self.H_x[1:,]**2 + self.H_y[:,1:]**2), "i", "j", "H")      
+                self.field_plot(abs(self.E_z), "i", "j", "E_z")
+                self.field_plot(np.sqrt(self.H_x[1:,]**2 + self.H_y[:,1:]**2), "i", "j", "H")
 
         # Getting measurements
         return self.measurement_points
-    
+
+    def field_plot(self, field, x_title, y_title, title):
+        # visualizing the source & measurement points
+        plt.scatter(self.meas_pos_x, self.meas_pos_y, c='silver')
+        plt.scatter(self.source.pos_x//self.Delta_x, self.source.pos_y//self.Delta_y, c='red')
+        # get axis orientation right
+        plt.imshow(np.transpose(field), origin='lower')
+        plt.title(title)
+        plt.xlabel(x_title)
+        plt.ylabel(y_title)
+        plt.show()
+
     ## String representation function for our box-space
     def __str__(self):
         s = "Box parameters: {} m, {} m, {} s\n".format(self.x_length, self.y_length, self.t_length)
