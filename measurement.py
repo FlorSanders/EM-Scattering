@@ -74,19 +74,10 @@ class Measurement:
         self.time_H = time_H
         self.time_E = time_E
 
-    ## Plot function for H_x
-    def plot_H_x(self):
-        plot(self.time_H, self.H_x, "time (s)" , "H_x (A/m)", "H_x " + self.title)
-    ## Plot function for H_y
-    def plot_H_y(self):
-        plot(self.time_H, self.H_y, "time (s)" , "H_y (A/m)", "H_y " + self.title)
-    ## Plot function for E_z
     def plot_E_z(self, filename = "none"):
         plot(self.time_E, self.E_z, "time (s)" , "E_z (V/m)", "E_z " + self.title, filename = filename)
-    ## Plot function for all measurement data
-    def plot_all_separate(self):
-        self.plot_H_x()
-        self.plot_H_y()
-        self.plot_E_z()
     def plot_H_xy(self, filename = "none"):
         plot_multiple([self.time_H, self.time_H], [self.H_x, self.H_y], ["H_x", "H_y"], "time (s)", "H (A/m)", "H " + self.title, filename= filename)
+    def plot_all(self, filename = "none"):
+        self.plot_H_xy(filename = filename + "H_xy" * (filename!="none"))
+        self.plot_E_z(filename = filename + "E_z" * (filename!="none"))
