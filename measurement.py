@@ -4,8 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 ### Simple plotting function taking care of matplotlib syntax
-def plot(x_values, y_values, x_title, y_title, title, yscale = 'linear', filename = "none"):
-    fig = plt.figure()
+def plot(x_values, y_values, x_title, y_title, title, fig=None, yscale = 'linear', filename = "none"):
     plt.plot(x_values, y_values, marker=".")
     plt.title(title)
     plt.xlabel(x_title)
@@ -83,11 +82,12 @@ class Measurement:
         self.plot_H_y()
         self.plot_E_z()
     def plot(self, *args, **kwargs):
+        fig = plt.figure()
         try:
             plt.axvline(self.interference_time)
             plt.axvline(self.wave_time, color='green')
         except AttributeError:
             pass
-        plot(*args, **kwargs)
+        plot(*args, fig=fig, **kwargs)
     def plot_H_xy(self, filename = "none"):
         plot_multiple([self.time_H, self.time_H], [self.H_x, self.H_y], ["H_x", "H_y"], "time (s)", "H (A/m)", "H " + self.title, filename= filename)
