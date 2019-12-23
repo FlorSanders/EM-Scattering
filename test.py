@@ -66,9 +66,9 @@ measurements = box.FDTD(plot_space=False ,visualize_fields=500)
 
 print("Calculation time for 1 measurement point", timeit.default_timer() - start)
 
-measurement.plot(measurements[0].time_E, src.get_current(measurements[0].time_E), "time [s]", "current [A/m**2]", "Current over time at source")
+measurement.plot(measurements[0].time_E, src.get_current(measurements[0].time_E), "time [s]", "current [A]", "Current over time at source")
 
 # Plotting measurements
 for measure in measurements:
     measure.plot_H_xy()
-    measure.plot_E_z()
+    measure.plot_E_z(indicators = False)
