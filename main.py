@@ -15,6 +15,8 @@ var_names = {}          # var names in simulation program
 var_description = {}    # var description to print
 questions = {}          # General question asked
 functions = {}          # dict of used functions
+# iteration order of questions/subjects
+keys = ["space", "num_dielek", "dielectric", "eps_avg", "line_source", "source_profile", "source_parameters", "discretization_space", "discretization_time", "num_meas", "measurement", "visualize_fields"]
 max_eps_r = 1
 
 def tofloat():
@@ -69,6 +71,8 @@ def create_dielek(num_dielek):
     for i in range(num_dielek):
         questions["dielectric"].append("What are the parameters of the {}-th dielectric object?".format(i+1))
         functions["dielectric"].append(make_dielek) # used for catching max_eps_r
+    if num_dielek == 0:
+        keys.remove("eps_avg")
     return None
 
 def make_dielek(**kwargs):
@@ -138,8 +142,7 @@ def dialog():
         Objects for each simulation domain
     """
     simulation = {}         # simulation dict: contains all usefull objects
-    # iteration order of questions/subjects
-    keys = ["space", "num_dielek", "dielectric", "eps_avg", "line_source", "source_profile", "source_parameters", "discretization_space", "discretization_time", "num_meas", "measurement"]
+    simulation["eps_avg"] = False
 
     ## All variable names, descriptions
     # space
@@ -200,6 +203,16 @@ def dialog():
     var_description["num_meas"] = [ "Number of measurement points" ]
     questions["num_meas"] = "How many measurement points do you want to add?"
     functions["num_meas"] = [create_meas]
+
+    ## Visualize fields
+    #
+    var_names["visualize_fields"] = [ "visualize_fields" ]
+    var_description["visualize_fields"] = ["Seconds of the visualisation time step or 0"]
+    questions["visualize_fields"] = \
+"""Do you want to visualize the magnitude of the fields every x seconds during the simulation?
+0) No
+x) Every x seconds, with x a value given by you and between 0 and the length of simulation"""
+    functions["visualize_fields"] = [ lambda visualize_fields : visualize_fields//simulation["discretization_time"]["Delta_t"] ]
     # iterate over all simulation domains
     for k in keys:
         # if list --> simulation domain is list too
@@ -239,9 +252,9 @@ def simulate(simulation):
     box.add_objects(simulation["dielectric"])
     box.set_source(simulation["source_parameters"])
     box.define_discretization(**simulation["discretization_space"], **simulation["discretization_time"])
-    titles = [ "at ({:g} , {:g})".format(meas[0], meas[1]) for meas in simulation["measurement"]]
+    titles = [ "  at ({:g} , {:g})".format(meas[0], meas[1]) for meas in simulation["measurement"]]
     box.add_measurement_points(simulation["measurement"], titles)
-    measurements = box.FDTD(eps_averaging=simulation["eps_avg"], plot_space=True, visualize_fields = 00)
+    measurements = box.FDTD(eps_averaging=simulation["eps_avg"], plot_space=True, visualize_fields = simulation["visualize_fields"])
     measurement.plot(measurements[0].time_E, box.source.get_current(measurements[0].time_E), "time [s]", "current [A]", "Source current", filename = "current")
 
     for meas in measurements:
@@ -262,11 +275,16 @@ Note2: All input values are (floating) numbers
     if you want to insert a number like: 1.23*10^(-67)
     use this notation: 1.23e-67
     In all other case, a ValueError will be thrown and you'll have to start again
+
+2 more examples:
+    use 1.2 instead of 1,2
+    use 1e6 instead of e6 for plain powers of 10
           """)
-    #simulation = dialog()
+    simulation = dialog()
     #print(simulation)
-    x = 175
-    y = 100
-    simulation = {'space': space.Space(x*2,500,4e-6), 'dielectric': [ dielectric.Dielectric(20, 200, 310, 100, 7), dielectric.Dielectric(20,300,310,100,15) ],
-                  'eps_avg': False, 'source_parameters': src.Gaussian_pulse(x,y,1,4e-7,1e-7), 'discretization_space': {'Delta_x': 0.6, 'Delta_y': 0.75}, 'discretization_time': {'Delta_t': 1e-09}, 'measurement': [(x, 120.0), (x, 220.0), (x, 320.0), (x/2, 340)]}
+    #x = 175
+    #y = 100
+    #simulation = {'space': space.Space(x*2,500,4e-6), 'dielectric': [ dielectric.Dielectric(20, 200, 310, 100, 7), dielectric.Dielectric(20,300,310,100,15) ],
+    #              'eps_avg': False, 'source_parameters': src.Gaussian_pulse(x,y,1,4e-7,1e-7), 'discretization_space': {'Delta_x': 0.6, 'Delta_y': 0.75},
+    #              'discretization_time': {'Delta_t': 1e-09}, 'measurement': [(x, 120.0), (x, 220.0), (x, 320.0), (x/2, 340)], 'visualize_fields': 800.0}
     simulate(simulation)

@@ -103,7 +103,7 @@ class Space:
 
         # Visualizing our space using a plot
         if(plot_space):
-            self.field_plot(self.space, "i (x-axis)", "j (y-axis)", "Visualisation of the space")
+            self.field_plot(self.space, "i (x-axis)", "j (y-axis)", "Visualisation of the space", filename="visualisation_space")
 
     ## Implementation of the FDTD method using the leapfrog scheme
     def FDTD(self, eps_averaging = True, plot_space = False, visualize_fields = 0):
@@ -146,9 +146,9 @@ class Space:
 
             # If requested, a periodic visualisation of the space is given
             if(visualize_fields != 0 and n % visualize_fields == 0):
-                print(n*self.Delta_t)
-                self.field_plot(abs(self.E_z), "i", "j", "E_z")
-                self.field_plot(np.sqrt(self.H_x[1:,]**2 + self.H_y[:,1:]**2), "i", "j", "H")
+                #print("".format(n*self.Delta_t))
+                self.field_plot(abs(self.E_z), "i (x-axis)", "j (y-axis)", r"$E_z\ \ t = {:.2g} s$".format(n*self.Delta_t), filename="E_z-t_{:.2g}_s".format(n*self.Delta_t))
+                self.field_plot(np.sqrt(self.H_x[1:,]**2 + self.H_y[:,1:]**2), "i (x-axis)", "j (y-axis)", r"Amplitude $H\ \ t = {:.2g} s$".format(n*self.Delta_t), filename="Amplitude_H-t_{:.2g}_s$".format(n*self.Delta_t))
                 #plt.quiver(self.H_x[1:,].T,self.H_y[:,1:].T)
                 #plt.quiver(self.H_y[:,1:],self.H_x[1:,:])
                 #plt.show()
@@ -156,7 +156,7 @@ class Space:
         # Getting measurements
         return self.measurement_points
 
-    def field_plot(self, field, x_title, y_title, title):
+    def field_plot(self, field, x_title, y_title, title, filename=None):
         # visualizing the source & measurement points
         plt.scatter(self.meas_pos_x, self.meas_pos_y, c='silver', label="measurement points")
         plt.scatter(self.source.pos_x//self.Delta_x, self.source.pos_y//self.Delta_y, c='red', label="source point")
@@ -166,6 +166,10 @@ class Space:
         plt.xlabel(x_title)
         plt.ylabel(y_title)
         plt.legend(bbox_to_anchor=(1,1), loc='upper left')
+        fig = plt.gcf()
+        if filename is not None:
+            fig.set_size_inches(20,12)
+            fig.savefig("./plots/" + filename + ".png")
         plt.show()
 
     ## String representation function for our box-space
