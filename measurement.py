@@ -56,8 +56,8 @@ class Measurement:
     def set_time(self, time_H, time_E):
         self.time_H = time_H
         self.time_E = time_E
-    
-    ## General plot function to include lines for interference and 
+
+    ## General plot function to include lines for interference and
     def plot(self, *args, **kwargs):
         fig = plt.figure()
         try:
@@ -91,13 +91,13 @@ class Measurement:
     ## Plot function to plot both H-fields together
     def plot_H_xy(self, filename = "none"):
         plot_multiple([self.time_H, self.time_H], [self.H_x, self.H_y], ["H_x", "H_y"], "time (s)", "H (A/m)", "H " + self.title, filename= filename)
-    
+
     ## Plot function for all measurement data, H-fields plotted separately
     def plot_all_separate(self, filename = "none", indicators = True):
         self.plot_H_x(filename = filename + "H_x" * (filename != "none"), indicators = indicators)
         self.plot_H_y(filename = filename + "H_y" * (filename != "none"), indicators = indicators)
         self.plot_E_z(filename = filename + "E_z" * (filename != "none"), indicators = indicators)
-    
+
     ## Plot function for all measurement data, H-fields plotted together
     def plot_all(self, filename = "none", indicators = True):
         self.plot_H_xy(filename = filename + "H_xy" * (filename!="none"))

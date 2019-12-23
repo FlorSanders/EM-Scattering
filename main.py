@@ -265,6 +265,8 @@ Note2: All input values are (floating) numbers
           """)
     #simulation = dialog()
     #print(simulation)
-    simulation = {'space': space.Space(200,500,4e-6), 'dielectric': [ dielectric.Dielectric(20, 200, 160, 100, 7), dielectric.Dielectric(20,300,160,100,15) ],
-                  'eps_avg': False, 'source_parameters': src.Gaussian_pulse(100,100,1,4e-7,1e-7), 'discretization_space': {'Delta_x': 0.6, 'Delta_y': 0.75}, 'discretization_time': {'Delta_t': 1e-09}, 'measurement': [(20.0, 400.0), (100.0, 120.0), (100.0, 220.0), (100.0, 320.0)]}
+    x = 175
+    y = 100
+    simulation = {'space': space.Space(x*2,500,4e-6), 'dielectric': [ dielectric.Dielectric(20, 200, 310, 100, 7), dielectric.Dielectric(20,300,310,100,15) ],
+                  'eps_avg': False, 'source_parameters': src.Gaussian_pulse(x,y,1,4e-7,1e-7), 'discretization_space': {'Delta_x': 0.6, 'Delta_y': 0.75}, 'discretization_time': {'Delta_t': 1e-09}, 'measurement': [(x, 120.0), (x, 220.0), (x, 320.0), (x/2, 340)]}
     simulate(simulation)

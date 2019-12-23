@@ -149,6 +149,9 @@ class Space:
                 print(n*self.Delta_t)
                 self.field_plot(abs(self.E_z), "i", "j", "E_z")
                 self.field_plot(np.sqrt(self.H_x[1:,]**2 + self.H_y[:,1:]**2), "i", "j", "H")
+                #plt.quiver(self.H_x[1:,].T,self.H_y[:,1:].T)
+                #plt.quiver(self.H_y[:,1:],self.H_x[1:,:])
+                #plt.show()
 
         # Getting measurements
         return self.measurement_points
