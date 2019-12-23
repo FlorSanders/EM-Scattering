@@ -51,12 +51,12 @@ E_z_t = [measure[7] for measure in measurements]
 labels = ["eps_r = {}".format(eps_r) for eps_r in epsilons]
 
 # Make and save all possible plots for these situations
-measurement.plot_multiple(E_times, E_z_t, labels, "time [s]", "E_z [V/m]", "Transmitted E_z-fields for various eps_r", "TRcoeff/E_z_t_eps_r")
-measurement.plot_multiple(E_times, E_z_r, labels, "time [s]", "E_z [V/m]", "Reflected E_z-fields for various eps_r", "TRcoeff/E_z_r_eps_r")
-measurement.plot_multiple(H_times, H_x_t, labels, "time [s]", "E_z [V/m]", "Transmitted H_x-fields for various eps_r", "TRcoeff/H_x_t_eps_r")
-measurement.plot_multiple(H_times, H_x_r, labels, "time [s]", "E_z [V/m]", "Reflected H_x-fields for various eps_r", "TRcoeff/H_x_r_eps_r")
-measurement.plot_multiple(H_times, H_y_t, labels, "time [s]", "E_z [V/m]", "Transmitted H_y-fields for various eps_r", "TRcoeff/H_y_t_eps_r")
-measurement.plot_multiple(H_times, H_y_r, labels, "time [s]", "E_z [V/m]", "Reflected H_y-fields for various eps_r", "TRcoeff/H_y_r_eps_r")
+measurement.plot_multiple(E_times, E_z_t, labels, "time [s]", "E_z [V/m]", "Transmitted E_z-fields for various eps_r", "Transmission/E_z_t_eps_r")
+measurement.plot_multiple(E_times, E_z_r, labels, "time [s]", "E_z [V/m]", "Reflected E_z-fields for various eps_r", "Transmission/E_z_r_eps_r")
+measurement.plot_multiple(H_times, H_x_t, labels, "time [s]", "E_z [V/m]", "Transmitted H_x-fields for various eps_r", "Transmission/H_x_t_eps_r")
+measurement.plot_multiple(H_times, H_x_r, labels, "time [s]", "E_z [V/m]", "Reflected H_x-fields for various eps_r", "Transmission/H_x_r_eps_r")
+measurement.plot_multiple(H_times, H_y_t, labels, "time [s]", "E_z [V/m]", "Transmitted H_y-fields for various eps_r", "Transmission/H_y_t_eps_r")
+measurement.plot_multiple(H_times, H_y_r, labels, "time [s]", "E_z [V/m]", "Reflected H_y-fields for various eps_r", "Transmission/H_y_r_eps_r")
 
 # Get the maximum amplitudes for the transmitted and reflected E and H fields to obtain the Transmission and reflection coefficients
 E_t_amps = np.array([np.max(abs(E)) for E in E_z_t])
@@ -67,4 +67,4 @@ T_theory = 2/(np.sqrt(epsilons) + 1)
 print(T_meas)
 print(T_theory)
 
-measurement.plot_multiple([epsilons]*2, [T_meas, T_theory], ["measured T", "predicted T"], "eps_r [-]", "Relative amplitude [-]", "T coefficient for various eps_r", "TRcoeff/TRcoeff_eps_r")
+measurement.plot_multiple([epsilons]*2, [T_meas, T_theory], ["measured T", "predicted T"], "eps_r [-]", "Relative amplitude [-]", "T coefficient for various eps_r", "Transmission/TRcoeff_eps_r")
