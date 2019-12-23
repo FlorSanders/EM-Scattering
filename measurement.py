@@ -92,11 +92,11 @@ class Measurement:
     
     ## Plot function for all measurement data, H-fields plotted separately
     def plot_all_separate(self, filename = "none", indicators = True):
-        self.plot_H_x(filename = filename + "H_x" * (filename != "none"), indicators = indicators)
-        self.plot_H_y(filename = filename + "H_y" * (filename != "none"), indicators = indicators)
-        self.plot_E_z(filename = filename + "E_z" * (filename != "none"), indicators = indicators)
+        self.plot_H_x(filename = "H_x" * (filename != "none") + filename, indicators = indicators)
+        self.plot_H_y(filename = "H_y" * (filename != "none") + filename, indicators = indicators)
+        self.plot_E_z(filename = "E_z" * (filename != "none") + filename, indicators = indicators)
     
     ## Plot function for all measurement data, H-fields plotted together
     def plot_all(self, filename = "none", indicators = True):
-        self.plot_H_xy(filename = filename + "H_xy" * (filename!="none"))
-        self.plot_E_z(filename = filename + "E_z" * (filename!="none"), indicators = indicators)
+        self.plot_H_xy(filename = "H_xy" * (filename!="none") +  filename)
+        self.plot_E_z(filename = "E_z" * (filename!="none") + filename, indicators = indicators)

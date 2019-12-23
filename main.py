@@ -112,7 +112,7 @@ class placing_line_source:
             questions["source_parameters"] = "What are the parameters for the Gaussian-modulated sinusoidal radio-frequency pulse source?"
             functions["source_parameters"] = [self.pulse]
         else:
-            raise UnsupportedError("profile doesn't match")
+            raise ValueError("profile doesn't match")
         return None
     def pulse(self, **kwargs):
         if self.profile == 1:
@@ -170,7 +170,7 @@ def dialog():
     # position
     var_names["line_source"] = [ "pos_x", "pos_y" ]
     var_description["line_source"] = [ "x-position [m]", "y-position [m]" ]
-    questions["line_source"] = "Where does the line source has to be placed?"
+    questions["line_source"] = "Position of the line source?"
     functions["line_source"] = [placing_line_source]
 
     # choose profile
@@ -245,7 +245,7 @@ def simulate(simulation):
     measurement.plot(measurements[0].time_E, box.source.get_current(measurements[0].time_E), "time [s]", "current [A]", "Current over time at source")
 
     for meas in measurements:
-        meas.plot_all_separate()
+        meas.plot_all_separate(meas.title)
 
 if __name__ == '__main__':
     print("""
