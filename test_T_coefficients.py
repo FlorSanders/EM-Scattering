@@ -35,7 +35,7 @@ def experiment(J0, eps_r, start_time, simulation_time):
 
 measurements = []
 epsilons = []
-for i in range(1,21,1):
+for i in range(1,21):
     measurements.append(experiment(1, i, 0.25*10**(-9), 1.6*10**(-9)))
     epsilons.append(i)
 

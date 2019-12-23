@@ -92,3 +92,6 @@ class Measurement:
         plot(*args, fig=fig, **kwargs)
     def plot_H_xy(self, filename = "none"):
         plot_multiple([self.time_H, self.time_H], [self.H_x, self.H_y], ["H_x", "H_y"], "time (s)", "H (A/m)", "H " + self.title, filename= filename)
+    def plot_all(self, filename = "none"):
+        self.plot_H_xy(filename = filename + "H_xy" * (filename!="none"))
+        self.plot_E_z(filename = filename + "E_z" * (filename!="none"))
