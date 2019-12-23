@@ -15,18 +15,6 @@ def plot(x_values, y_values, x_title, y_title, title, fig=None, yscale = 'linear
         fig.savefig("./plots/" + filename + ".png", dpi = fig.dpi)
     plt.show()
 
-# moved field_plot to space object for convenience
-
-def make_animation(field, save = True, name = "animation"):
-    fig = plt.figure()
-    images = []
-    for n in range(field.shape[2]):
-        images.append([plt.imshow(abs(field[:,:,n]), origin='lower', animated = True)])
-
-    im_ani = animation.ArtistAnimation(fig, images, interval=25, blit=True,repeat_delay=100)
-    im_ani.save(name + '.mp4')
-    plt.show()
-
 def plot_multiple(x_values_list, y_values_list, labels_list, x_title, y_title, title, filename = "none"):
     fig = plt.figure()
     for i in range(len(x_values_list)):
@@ -36,7 +24,7 @@ def plot_multiple(x_values_list, y_values_list, labels_list, x_title, y_title, t
     plt.ylabel(y_title)
     plt.legend()
     if filename != "none":
-        fig.savefig("./plots/" + filename + ".png", dpi = fig.dpi)
+        fig.savefig(filename + ".png", dpi = fig.dpi)
     plt.show()
 
 ### Measurement class: Combine all measurement data for a certain point into a single callable instance
@@ -66,21 +54,8 @@ class Measurement:
     def set_time(self, time_H, time_E):
         self.time_H = time_H
         self.time_E = time_E
-
-    ## Plot function for H_x
-    def plot_H_x(self):
-        self.plot(self.time_H, self.H_x, "time (s)" , "H_x (A/m)", "H_x " + self.title)
-    ## Plot function for H_y
-    def plot_H_y(self):
-        self.plot(self.time_H, self.H_y, "time (s)" , "H_y (A/m)", "H_y " + self.title)
-    ## Plot function for E_z
-    def plot_E_z(self, filename = "none"):
-        self.plot(self.time_E, self.E_z, "time (s)" , "E_z (V/m)", "E_z " + self.title, filename = filename)
-    ## Plot function for all measurement data
-    def plot_all_separate(self):
-        self.plot_H_x()
-        self.plot_H_y()
-        self.plot_E_z()
+    
+    ## General plot function to include lines for interference and 
     def plot(self, *args, **kwargs):
         fig = plt.figure()
         try:
@@ -90,8 +65,38 @@ class Measurement:
         except AttributeError:
             pass
         plot(*args, fig=fig, **kwargs)
+
+    ## Plot function for H_x
+    def plot_H_x(self, filename = "none", indicators = True):
+        if(indicators):
+            self.plot(self.time_H, self.H_x, "time (s)" , "H_x (A/m)", "H_x " + self.title, filename = filename)
+        else:
+            plot(self.time_H, self.H_x, "time (s)" , "H_x (A/m)", "H_x " + self.title, filename = filename)
+    ## Plot function for H_y
+    def plot_H_y(self, filename = "none", indicators = True):
+        if(indicators):
+            self.plot(self.time_H, self.H_y, "time (s)" , "H_y (A/m)", "H_y " + self.title, filename = filename)
+        else:
+            plot(self.time_H, self.H_y, "time (s)" , "H_y (A/m)", "H_y " + self.title, filename = filename)
+
+    ## Plot function for E_z
+    def plot_E_z(self, filename = "none", indicators = True):
+        if(indicators):
+            self.plot(self.time_E, self.E_z, "time (s)" , "E_z (V/m)", "E_z " + self.title, filename = filename)
+        else:
+            plot(self.time_E, self.E_z, "time (s)" , "E_z (V/m)", "E_z " + self.title, filename = filename)
+
+    ## Plot function to plot both H-fields together
     def plot_H_xy(self, filename = "none"):
         plot_multiple([self.time_H, self.time_H], [self.H_x, self.H_y], ["H_x", "H_y"], "time (s)", "H (A/m)", "H " + self.title, filename= filename)
-    def plot_all(self, filename = "none"):
+    
+    ## Plot function for all measurement data, H-fields plotted separately
+    def plot_all_separate(self, filename = "none", indicators = True):
+        self.plot_H_x(filename = filename + "H_x" * (filename != "none"), indicators = indicators)
+        self.plot_H_y(filename = filename + "H_y" * (filename != "none"), indicators = indicators)
+        self.plot_E_z(filename = filename + "E_z" * (filename != "none"), indicators = indicators)
+    
+    ## Plot function for all measurement data, H-fields plotted together
+    def plot_all(self, filename = "none", indicators = True):
         self.plot_H_xy(filename = filename + "H_xy" * (filename!="none"))
-        self.plot_E_z(filename = filename + "E_z" * (filename!="none"))
+        self.plot_E_z(filename = filename + "E_z" * (filename!="none"), indicators = indicators)
