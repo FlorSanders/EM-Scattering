@@ -71,22 +71,22 @@ class Measurement:
     ## Plot function for H_x
     def plot_H_x(self, filename = "none", indicators = True):
         if(indicators):
-            self.plot(self.time_H, self.H_x, "time (s)" , "H_x (A/m)", "H_x " + self.title, filename = filename)
+            self.plot(self.time_H, self.H_x, "time (s)" , r"$H_x (\frac{A}{m})$", r"$H_x$" + self.title, filename = filename)
         else:
-            plot(self.time_H, self.H_x, "time (s)" , "H_x (A/m)", "H_x " + self.title, filename = filename)
+            plot(self.time_H, self.H_x, "time (s)" , r"$H_x (\frac{A}{m})$", r"$H_x$" + self.title, filename = filename)
     ## Plot function for H_y
     def plot_H_y(self, filename = "none", indicators = True):
         if(indicators):
-            self.plot(self.time_H, self.H_y, "time (s)" , "H_y (A/m)", "H_y " + self.title, filename = filename)
+            self.plot(self.time_H, self.H_y, "time (s)" , r"$H_y (\frac{A}{m})$", r"$H_y$" + self.title, filename = filename)
         else:
-            plot(self.time_H, self.H_y, "time (s)" , "H_y (A/m)", "H_y " + self.title, filename = filename)
+            plot(self.time_H, self.H_y, "time (s)" , r"$H_y (\frac{A}{m})$", r"$H_y$" + self.title, filename = filename)
 
     ## Plot function for E_z
     def plot_E_z(self, filename = "none", indicators = True):
         if(indicators):
-            self.plot(self.time_E, self.E_z, "time (s)" , "E_z (V/m)", "E_z " + self.title, filename = filename)
+            self.plot(self.time_E, self.E_z, "time (s)" , r"$E_z (\frac{V}{m})", r"$E_z$" + self.title, filename = filename)
         else:
-            plot(self.time_E, self.E_z, "time (s)" , "E_z (V/m)", "E_z " + self.title, filename = filename)
+            plot(self.time_E, self.E_z, "time (s)" , r"$E_z (\frac{V}{m})", r"$E_z$" + self.title, filename = filename)
 
     ## Plot function to plot both H-fields together
     def plot_H_xy(self, filename = "none"):

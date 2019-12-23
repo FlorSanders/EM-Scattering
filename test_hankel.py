@@ -1,6 +1,7 @@
 # Importing necessary libraries and files
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 from scipy import special as sp
 from constants import eps_0, mu_0, c
 import space
@@ -82,6 +83,12 @@ validE_z = measurements[0].E_z[:int(measurements[0].interference_time//Delta_t)]
 ref = np.fft.rfft(validE_z, n=pad_zeros)*Delta_t
 ref = ref[use_indices]
 
+def SOURCE_EXP(omega):
+    t = measurements[0].time_E
+    current = box.source.get_current(t)
+    fourier = np.fft.rfft(current, n=pad_zeros)*Delta_t
+    return fourier[use_indices]
+
 for meas in measurements[1:]:
     # hankel
     h = E_z_hankel(meas.pos_x, meas.pos_y, reffreq)
@@ -98,11 +105,16 @@ for meas in measurements[1:]:
     plt.title(r"Frequency domain of $e_z$ in ({:g} , {:g})".format(meas.pos_x, meas.pos_y))
     plt.legend()
     plt.show()
-    plt.plot(reffreq, np.angle(meas_e/SOURCE(reffreq)), label="experimental")
+    plt.plot(reffreq, np.angle(meas_e/SOURCE_EXP(reffreq)), label="experimental")
     plt.plot(reffreq, np.angle(h), label="analytical")
     plt.xlabel(r"$\omega$ [Hz]")
     plt.ylabel(r"Phase [radians]")
     plt.title(r"Frequency domain of $e_z$ in ({:g} , {:g})".format(meas.pos_x, meas.pos_y))
+    ax = plt.gca()
+    ax.set_yticks([-np.pi,-np.pi/2,0,np.pi/2,np.pi])
+    labels = [r"$-\pi$", r"$-\frac{\pi}{2}$", r"$0$", r"$\frac{\pi}{2}$", r"$\pi$"]
+    ax.set_yticklabels(labels)
+    #ax.yaxis.set_major_for(ticker.FuncFormatter(lambda x, pos: ""
     plt.legend()
     plt.show()
     plt.plot(reffreq, (meas_e/SOURCE(reffreq)).real)
