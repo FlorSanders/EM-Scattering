@@ -242,7 +242,7 @@ def simulate(simulation):
     titles = [ "at ({:g} , {:g})".format(meas[0], meas[1]) for meas in simulation["measurement"]]
     box.add_measurement_points(simulation["measurement"], titles)
     measurements = box.FDTD(eps_averaging=simulation["eps_avg"], plot_space=True, visualize_fields = 00)
-    measurement.plot(measurements[0].time_E, box.source.get_current(measurements[0].time_E), "time [s]", "current [A]", "Current over time at source")
+    measurement.plot(measurements[0].time_E, box.source.get_current(measurements[0].time_E), "time [s]", "current [A]", "Source current", filename = "current")
 
     for meas in measurements:
         meas.plot_all_separate(meas.title)
