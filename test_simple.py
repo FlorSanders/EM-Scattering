@@ -36,4 +36,4 @@ box.add_measurement_points(measurement_points, measurement_titles)
 measurements = box.FDTD(plot_space=True ,visualize_fields=1000, eps_averaging=False)
 
 for measure in measurements:
-    measure.plot_all("Halfspace/" + measure.title, indicators = False)
+    measure.plot_all(measure.title, indicators = False)

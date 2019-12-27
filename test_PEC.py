@@ -31,7 +31,7 @@ measurement_titles = ["at source"]
 box.add_measurement_points(measurement_points, measurement_titles)
 measurements = box.FDTD(plot_space=True ,visualize_fields=False, eps_averaging=False)
 
-measurement.plot(measurements[0].time_E, src.get_current(measurements[0].time_E), "time [s]", "current [A]", "Source current", filename="PEC/current")
+measurement.plot(measurements[0].time_E, src.get_current(measurements[0].time_E), "time [s]", "current [A]", "Source current", filename="current")
 
 for measure in measurements:
-    measure.plot_all_separate("PEC/" + measure.title)
+    measure.plot_all_separate(measure.title)

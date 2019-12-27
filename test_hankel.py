@@ -57,11 +57,11 @@ print(box)
 max_times = box.add_measurement_points(measurement_points)
 measurements = box.FDTD(plot_space=True ,visualize_fields=00)
 
-measurement.plot(measurements[0].time_E, src.get_current(measurements[0].time_E), "time [s]", "current [A/m**2]", "Current over time at source")
+measurement.plot(measurements[0].time_E, src.get_current(measurements[0].time_E), "time [s]", "current [A]", "Source current")
 
 # Plotting measurements
 for measure in measurements:
-    measure.plot_all_separate()
+    measure.plot_all_separate(indicators=False)
     pass
 
 #### freq domain
