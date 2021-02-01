@@ -1,7 +1,6 @@
 # Importing necessary libraries and files
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 
 plt.rcParams.update({"font.size": 22})
 
@@ -35,7 +34,7 @@ def plot_multiple(
     plt.legend()
     if filename != "none":
         fig.set_size_inches(14, 10)
-        fig.savefig(filename + ".png")
+        fig.savefig("./plots/" + filename + ".png")
     plt.show()
 
 
