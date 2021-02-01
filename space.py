@@ -29,7 +29,7 @@ class Space:
         # Calculating the amount of space/time indices
         self.N_x = int(self.x_length / Delta_x + 1)
         self.N_y = int(self.y_length / Delta_y + 1)
-        self.N_t = int(self.t_length / Delta_t) # t_length not inclusive
+        self.N_t = int(self.t_length / Delta_t)  # t_length not inclusive
 
         # Initializing zero-valued fields of the correct size (as 3D numpy array)
         # E_z field at the corners of our discretized blocks
@@ -47,39 +47,52 @@ class Space:
         self.dielectrics.extend(dielectrics)
 
     ## Add a list of measurement point in the form of: [(x,y), ...], as well as optional titles for the measurements
-    def add_measurement_points(self, measurement_points, measurement_titles = []):
+    def add_measurement_points(self, measurement_points, measurement_titles=[]):
         # Make a list of empty titles if no titles were given
-        if(len(measurement_titles) == 0):
-            measurement_titles = [""]*len(measurement_points)
+        if len(measurement_titles) == 0:
+            measurement_titles = [""] * len(measurement_points)
         # list of tuples
-        self.measurement_points = np.empty(len(measurement_points), dtype=measurement.Measurement)
+        self.measurement_points = np.empty(
+            len(measurement_points), dtype=measurement.Measurement
+        )
         self.interference_times = np.empty(len(measurement_points))
         for i, meas in enumerate(measurement_points):
             # reflecting on the PEC walls
             # dist : the 4 reflection points of measurement in the PEC
-            dist = np.empty((4,2))
-            dist[0,:] = -meas[0],meas[1]
-            dist[1,:] = meas[0],-meas[1]
-            dist[2,:] = 2*self.x_length - meas[0], meas[1]
-            dist[3,:] = meas[0],2*self.y_length - meas[1]
+            dist = np.empty((4, 2))
+            dist[0, :] = -meas[0], meas[1]
+            dist[1, :] = meas[0], -meas[1]
+            dist[2, :] = 2 * self.x_length - meas[0], meas[1]
+            dist[3, :] = meas[0], 2 * self.y_length - meas[1]
             dist -= (self.source.pos_x, self.source.pos_y)
             # euclidian distance
-            dist = np.linalg.norm(dist,axis=-1)
+            dist = np.linalg.norm(dist, axis=-1)
             # the least distance between the source & the reflection point of
             # the measurement will be approx the distance the wave has to
             # travel
             min_dist = np.min(dist)
             # set interference
-            self.interference_times[i] = min_dist/c
-            self.measurement_points[i] = measurement.Measurement(meas[0],meas[1], self.interference_times[i], measurement_titles[i])
-            self.measurement_points[i].wave_time = np.linalg.norm( (meas[0]-self.source.pos_x, meas[1]-self.source.pos_y) )/c
+            self.interference_times[i] = min_dist / c
+            self.measurement_points[i] = measurement.Measurement(
+                meas[0], meas[1], self.interference_times[i], measurement_titles[i]
+            )
+            self.measurement_points[i].wave_time = (
+                np.linalg.norm(
+                    (meas[0] - self.source.pos_x, meas[1] - self.source.pos_y)
+                )
+                / c
+            )
         # return an estimate maximum of time before inteference occurs (foreach meas_point)
-        self.meas_pos_x = np.asarray([ meas.pos_x for meas in self.measurement_points])//self.Delta_x
-        self.meas_pos_y = np.asarray([ meas.pos_y for meas in self.measurement_points])//self.Delta_y
+        self.meas_pos_x = (
+            np.asarray([meas.pos_x for meas in self.measurement_points]) // self.Delta_x
+        )
+        self.meas_pos_y = (
+            np.asarray([meas.pos_y for meas in self.measurement_points]) // self.Delta_y
+        )
         return self.interference_times
 
     ## Makes a discretized representation of the (inner) space with its dielectric properties (eps_r) at the measurement points of E_z
-    def initialize_space(self, eps_averaging = True, plot_space = True):
+    def initialize_space(self, eps_averaging=True, plot_space=True):
         # Initialize space with relative permittivity (eps_r) 1 everywhere (vacuum)
         self.space = np.ones((self.N_x - 1, self.N_y - 1))
 
@@ -92,30 +105,41 @@ class Space:
             y_length = int(dielectric.height / self.Delta_y)
 
             # Changing the value for eps_r at that position
-            self.space[i:i + x_length, j:j + y_length] = dielectric.eps_r
+            self.space[i : i + x_length, j : j + y_length] = dielectric.eps_r
         # Problem: The edges of the dielectric and the measurement points of E_z coincide, so eps_r is not well defined in this point
-        if(eps_averaging):
+        if eps_averaging:
             # Default solution: We use the average value of eps_r of the surrounding regions at every point for E_z.
-            self.space = (self.space[:-1, :-1] + self.space[1:, :-1] + self.space[:-1, 1:] + self.space[1:, 1:]) / 4
+            self.space = (
+                self.space[:-1, :-1]
+                + self.space[1:, :-1]
+                + self.space[:-1, 1:]
+                + self.space[1:, 1:]
+            ) / 4
         else:
             # Alternative solution: We shift the dielectrics slightly (1/2 step left- and downward) so we don't need to average values out.
             self.space = self.space[:-1, :-1]
 
         # Visualizing our space using a plot
-        if(plot_space):
-            self.field_plot(self.space, "i (x-axis)", "j (y-axis)", "Visualisation of the space", filename="visualisation_space")
+        if plot_space:
+            self.field_plot(
+                self.space,
+                "i (x-axis)",
+                "j (y-axis)",
+                "Visualisation of the space",
+                filename="visualisation_space",
+            )
 
     ## Implementation of the FDTD method using the leapfrog scheme
-    def FDTD(self, eps_averaging = True, plot_space = False, visualize_fields = 0):
+    def FDTD(self, eps_averaging=True, plot_space=False, visualize_fields=0):
         # Initialize the dielectric properties of the space
         self.initialize_space(eps_averaging, plot_space)
         # Making the discrete time arrays for H (offset by half a step) and E-measurements
-        time_H = (np.arange(self.N_t) + 1/2) * self.Delta_t
+        time_H = (np.arange(self.N_t) + 1 / 2) * self.Delta_t
         time_E = np.arange(self.N_t) * self.Delta_t
         for meas in self.measurement_points:
             # Adding the time arrays to our measurements
             meas.set_time(time_H, time_E)
-            meas.append_fields(0,0,0)
+            meas.append_fields(0, 0, 0)
         # Returning the list of measurements
 
         # Calculating the discretized postions of our line source
@@ -125,59 +149,110 @@ class Space:
         # Use the iterative update functions for our fields
         for n in range(1, self.N_t):
             # 1: Update H_y
-            self.H_y[:, :] += self.Delta_t / (mu_0 * self.Delta_x) * (self.E_z[1:, :] - self.E_z[:-1, :])
+            self.H_y[:, :] += (
+                self.Delta_t
+                / (mu_0 * self.Delta_x)
+                * (self.E_z[1:, :] - self.E_z[:-1, :])
+            )
 
             # 2: Update H_x
-            self.H_x[:, :] -= self.Delta_t / (mu_0 * self.Delta_y) * (self.E_z[:, 1:] - self.E_z[:, :-1])
+            self.H_x[:, :] -= (
+                self.Delta_t
+                / (mu_0 * self.Delta_y)
+                * (self.E_z[:, 1:] - self.E_z[:, :-1])
+            )
 
             # 3: Update E_z (inner space, edges = 0 as per boundary conditions)
-            self.E_z[1:-1, 1:-1] += self.Delta_t / (eps_0 * self.Delta_x) * (self.H_y[1:, 1:-1] - self.H_y[:-1, 1:-1]) / self.space
-            self.E_z[1:-1, 1:-1] -= self.Delta_t / (eps_0 * self.Delta_y) * (self.H_x[1:-1, 1:] - self.H_x[1:-1, :-1]) / self.space
-            self.E_z[i_source, j_source] -= self.source.get_current((n-1/2)*self.Delta_t) * self.Delta_t / (self.Delta_x * self.Delta_y * eps_0 * self.space[i_source, j_source])
+            self.E_z[1:-1, 1:-1] += (
+                self.Delta_t
+                / (eps_0 * self.Delta_x)
+                * (self.H_y[1:, 1:-1] - self.H_y[:-1, 1:-1])
+                / self.space
+            )
+            self.E_z[1:-1, 1:-1] -= (
+                self.Delta_t
+                / (eps_0 * self.Delta_y)
+                * (self.H_x[1:-1, 1:] - self.H_x[1:-1, :-1])
+                / self.space
+            )
+            self.E_z[i_source, j_source] -= (
+                self.source.get_current((n - 1 / 2) * self.Delta_t)
+                * self.Delta_t
+                / (self.Delta_x * self.Delta_y * eps_0 * self.space[i_source, j_source])
+            )
 
             # 4: Saving measurements
             for meas in self.measurement_points:
                 # Rescaling the locations to indices
-                i, j = int(meas.pos_x/self.Delta_x), int(meas.pos_y/self.Delta_y)
+                i, j = int(meas.pos_x / self.Delta_x), int(meas.pos_y / self.Delta_y)
                 H_x = self.H_x[i, j]
                 H_y = self.H_y[i, j]
                 E_z = self.E_z[i, j]
                 meas.append_fields(H_x, H_y, E_z)
 
             # If requested, a periodic visualisation of the space is given
-            if(visualize_fields != 0 and n % visualize_fields == 0):
-                #print("".format(n*self.Delta_t))
-                self.field_plot(abs(self.E_z), "i (x-axis)", "j (y-axis)", r"$E_z\ \ t = {:.2g} s$".format(n*self.Delta_t), filename="E_z-t_{:.2g}_s".format(n*self.Delta_t))
-                self.field_plot(np.sqrt(self.H_x[1:,]**2 + self.H_y[:,1:]**2), "i (x-axis)", "j (y-axis)", r"Amplitude $H\ \ t = {:.2g} s$".format(n*self.Delta_t), filename="Amplitude_H-t_{:.2g}_s$".format(n*self.Delta_t))
-                #plt.quiver(self.H_x[1:,].T,self.H_y[:,1:].T)
-                #plt.quiver(self.H_y[:,1:],self.H_x[1:,:])
-                #plt.show()
+            if visualize_fields != 0 and n % visualize_fields == 0:
+                # print("".format(n*self.Delta_t))
+                self.field_plot(
+                    abs(self.E_z),
+                    "i (x-axis)",
+                    "j (y-axis)",
+                    r"$E_z\ \ t = {:.2g} s$".format(n * self.Delta_t),
+                    filename="E_z-t_{:.2g}_s".format(n * self.Delta_t),
+                )
+                self.field_plot(
+                    np.sqrt(
+                        self.H_x[
+                            1:,
+                        ]
+                        ** 2
+                        + self.H_y[:, 1:] ** 2
+                    ),
+                    "i (x-axis)",
+                    "j (y-axis)",
+                    r"Amplitude $H\ \ t = {:.2g} s$".format(n * self.Delta_t),
+                    filename="Amplitude_H-t_{:.2g}_s$".format(n * self.Delta_t),
+                )
+                # plt.quiver(self.H_x[1:,].T,self.H_y[:,1:].T)
+                # plt.quiver(self.H_y[:,1:],self.H_x[1:,:])
+                # plt.show()
 
         # Getting measurements
         return self.measurement_points
 
     def field_plot(self, field, x_title, y_title, title, filename=None):
         # visualizing the source & measurement points
-        plt.scatter(self.meas_pos_x, self.meas_pos_y, c='silver', label="measurement points")
-        plt.scatter(self.source.pos_x//self.Delta_x, self.source.pos_y//self.Delta_y, c='red', label="source point")
+        plt.scatter(
+            self.meas_pos_x, self.meas_pos_y, c="silver", label="measurement points"
+        )
+        plt.scatter(
+            self.source.pos_x // self.Delta_x,
+            self.source.pos_y // self.Delta_y,
+            c="red",
+            label="source point",
+        )
         # get axis orientation right
-        plt.imshow(np.transpose(field), origin='lower')
+        plt.imshow(np.transpose(field), origin="lower")
         plt.title(title)
         plt.xlabel(x_title)
         plt.ylabel(y_title)
-        plt.legend(bbox_to_anchor=(1,1), loc='upper left')
+        plt.legend(bbox_to_anchor=(1, 1), loc="upper left")
         fig = plt.gcf()
         if filename is not None:
-            fig.set_size_inches(20,12)
+            fig.set_size_inches(20, 12)
             fig.savefig("./plots/" + filename + ".png")
         plt.show()
 
     ## String representation function for our box-space
     def __str__(self):
-        s = "Box parameters: {} m, {} m, {} s\n".format(self.x_length, self.y_length, self.t_length)
-        s += "Discretization: {} m, {} m, {} s\n".format(self.Delta_x, self.Delta_y, self.Delta_t)
+        s = "Box parameters: {} m, {} m, {} s\n".format(
+            self.x_length, self.y_length, self.t_length
+        )
+        s += "Discretization: {} m, {} m, {} s\n".format(
+            self.Delta_x, self.Delta_y, self.Delta_t
+        )
         s += str(self.source) + "\n"
         s += "Dielectrics ({}):\n".format(len(self.dielectrics))
         for diel in self.dielectrics:
-            s+= str(diel) + "\n"
+            s += str(diel) + "\n"
         return s

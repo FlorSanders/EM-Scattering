@@ -3,40 +3,46 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
-plt.rcParams.update({'font.size':22})
+plt.rcParams.update({"font.size": 22})
 
 ### Simple plotting function taking care of matplotlib syntax
-def plot(x_values, y_values, x_title, y_title, title, yscale = 'linear', filename = "none"):
+def plot(x_values, y_values, x_title, y_title, title, yscale="linear", filename="none"):
     fig = plt.gcf()
     plt.plot(x_values, y_values, marker=".")
     plt.title(title)
     plt.xlabel(x_title)
     plt.ylabel(y_title)
     plt.yscale(yscale)
-    plt.xlim(x_values[0], x_values[-1]) # confirming plot width to overrule interference line (if to far away)
-    plt.ticklabel_format(axis='both', style='sci', scilimits=(-4,4))
+    plt.xlim(
+        x_values[0], x_values[-1]
+    )  # confirming plot width to overrule interference line (if to far away)
+    plt.ticklabel_format(axis="both", style="sci", scilimits=(-4, 4))
     if filename != "none":
-        fig.set_size_inches(20,12)
+        fig.set_size_inches(20, 12)
         fig.savefig("./plots/" + filename + ".png")
     plt.show()
 
-def plot_multiple(x_values_list, y_values_list, labels_list, x_title, y_title, title, filename = "none"):
+
+def plot_multiple(
+    x_values_list, y_values_list, labels_list, x_title, y_title, title, filename="none"
+):
     fig = plt.figure()
     for i in range(len(x_values_list)):
-        plt.plot(x_values_list[i], y_values_list[i], label = labels_list[i], marker = ".")
+        plt.plot(x_values_list[i], y_values_list[i], label=labels_list[i], marker=".")
     plt.title(title)
     plt.xlabel(x_title)
     plt.ylabel(y_title)
     plt.legend()
     if filename != "none":
-        fig.set_size_inches(14,10)
+        fig.set_size_inches(14, 10)
         fig.savefig(filename + ".png")
     plt.show()
+
 
 ### Measurement class: Combine all measurement data for a certain point into a single callable instance
 class Measurement:
     ## Initialization with all measurement data
-    def __init__(self, pos_x, pos_y, interference_time = 0, title = ""):
+    def __init__(self, pos_x, pos_y, interference_time=0, title=""):
         self.pos_x = pos_x
         self.pos_y = pos_y
         self.interference_time = interference_time
@@ -64,44 +70,105 @@ class Measurement:
     ## General plot function to include lines for interference and
     def plot(self, *args, **kwargs):
         try:
-            plt.axvline(self.interference_time, linestyle='--', label="Interference can start")
-            plt.axvline(self.wave_time, color='green', label="Wave from source arrives")
-            plt.legend(title='Guidelines:')
+            plt.axvline(
+                self.interference_time, linestyle="--", label="Interference can start"
+            )
+            plt.axvline(self.wave_time, color="green", label="Wave from source arrives")
+            plt.legend(title="Guidelines:")
         except AttributeError:
             pass
         plot(*args, **kwargs)
 
     ## Plot function for H_x
-    def plot_H_x(self, filename = "none", indicators = True):
-        if(indicators):
-            self.plot(self.time_H, self.H_x, "time (s)" , r"$H_x\ (\frac{A}{m})$", r"$H_x$" + self.title, filename = filename)
+    def plot_H_x(self, filename="none", indicators=True):
+        if indicators:
+            self.plot(
+                self.time_H,
+                self.H_x,
+                "time (s)",
+                r"$H_x\ (\frac{A}{m})$",
+                r"$H_x$" + self.title,
+                filename=filename,
+            )
         else:
-            plot(self.time_H, self.H_x, "time (s)" , r"$H_x\ (\frac{A}{m})$", r"$H_x$" + self.title, filename = filename)
+            plot(
+                self.time_H,
+                self.H_x,
+                "time (s)",
+                r"$H_x\ (\frac{A}{m})$",
+                r"$H_x$" + self.title,
+                filename=filename,
+            )
+
     ## Plot function for H_y
-    def plot_H_y(self, filename = "none", indicators = True):
-        if(indicators):
-            self.plot(self.time_H, self.H_y, "time (s)" , r"$H_y\ (\frac{A}{m})$", r"$H_y$" + self.title, filename = filename)
+    def plot_H_y(self, filename="none", indicators=True):
+        if indicators:
+            self.plot(
+                self.time_H,
+                self.H_y,
+                "time (s)",
+                r"$H_y\ (\frac{A}{m})$",
+                r"$H_y$" + self.title,
+                filename=filename,
+            )
         else:
-            plot(self.time_H, self.H_y, "time (s)" , r"$H_y\ (\frac{A}{m})$", r"$H_y$" + self.title, filename = filename)
+            plot(
+                self.time_H,
+                self.H_y,
+                "time (s)",
+                r"$H_y\ (\frac{A}{m})$",
+                r"$H_y$" + self.title,
+                filename=filename,
+            )
 
     ## Plot function for E_z
-    def plot_E_z(self, filename = "none", indicators = True):
-        if(indicators):
-            self.plot(self.time_E, self.E_z, "time (s)" , r"$E_z\ (\frac{V}{m})$", r"$E_z$" + self.title, filename = filename)
+    def plot_E_z(self, filename="none", indicators=True):
+        if indicators:
+            self.plot(
+                self.time_E,
+                self.E_z,
+                "time (s)",
+                r"$E_z\ (\frac{V}{m})$",
+                r"$E_z$" + self.title,
+                filename=filename,
+            )
         else:
-            plot(self.time_E, self.E_z, "time (s)" , r"$E_z\ (\frac{V}{m})$", r"$E_z$" + self.title, filename = filename)
+            plot(
+                self.time_E,
+                self.E_z,
+                "time (s)",
+                r"$E_z\ (\frac{V}{m})$",
+                r"$E_z$" + self.title,
+                filename=filename,
+            )
 
     ## Plot function to plot both H-fields together
-    def plot_H_xy(self, filename = "none"):
-        plot_multiple([self.time_H, self.time_H], [self.H_x, self.H_y], ["H_x", "H_y"], "time (s)", "H (A/m)", "H " + self.title, filename= filename)
+    def plot_H_xy(self, filename="none"):
+        plot_multiple(
+            [self.time_H, self.time_H],
+            [self.H_x, self.H_y],
+            ["H_x", "H_y"],
+            "time (s)",
+            "H (A/m)",
+            "H " + self.title,
+            filename=filename,
+        )
 
     ## Plot function for all measurement data, H-fields plotted separately
-    def plot_all_separate(self, filename = "none", indicators = True):
-        self.plot_H_x(filename = "H_x" * (filename != "none") + filename, indicators = indicators)
-        self.plot_H_y(filename = "H_y" * (filename != "none") + filename, indicators = indicators)
-        self.plot_E_z(filename = "E_z" * (filename != "none") + filename, indicators = indicators)
+    def plot_all_separate(self, filename="none", indicators=True):
+        self.plot_H_x(
+            filename="H_x" * (filename != "none") + filename, indicators=indicators
+        )
+        self.plot_H_y(
+            filename="H_y" * (filename != "none") + filename, indicators=indicators
+        )
+        self.plot_E_z(
+            filename="E_z" * (filename != "none") + filename, indicators=indicators
+        )
 
     ## Plot function for all measurement data, H-fields plotted together
-    def plot_all(self, filename = "none", indicators = True):
-        self.plot_H_xy(filename = "H_xy" * (filename!="none") + filename)
-        self.plot_E_z(filename = "E_z" * (filename!="none") + filename, indicators = indicators)
+    def plot_all(self, filename="none", indicators=True):
+        self.plot_H_xy(filename="H_xy" * (filename != "none") + filename)
+        self.plot_E_z(
+            filename="E_z" * (filename != "none") + filename, indicators=indicators
+        )
